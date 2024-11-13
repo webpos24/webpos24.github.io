@@ -2,62 +2,27 @@
 
 <head>
     <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
-    <title>JCHS POS</title>
+    <title>WebPOS - Order</title>
+    <link rel="stylesheet" href="general.css">
     <style>
-        body,
-        html {
-            margin: 0;
-            padding: 0;
-        }
-
-        .menuSlot {
-            width: 50px;
-            height: 50px;
-            padding: 10px;
-        }
-
-        .active {
-            cursor: pointer;
-        }
-
-        .active:active {
-            background-color: rgba(0, 0, 0, 0.1);
-        }
-
-        .now {
-            width: 50px;
-            filter: invert(100%) drop-shadow(0px 0px 5px rgba(0, 0, 0, 0.363));
-        }
-
-        .detail {
-            position: absolute;
-            top: 18px;
-            font-family: Georgia, 'Times New Roman', Times, serif;
-        }
-
-        .center {
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            width: 50%;
-        }
-
         .content {
             font-size: 20px;
             font-family: Arial, Helvetica, sans-serif;
             overflow: hidden;
-            margin: 10px;
+            height: 100%;
         }
 
         .orderBorder {
             border: 1px solid #dadada;
             font-size: 20px;
-            padding: 0px 5px 0px 5px;
+            padding: 5px 7px 5px 7px;
         }
 
         .orderButton {
             user-select: none;
-            height: 30px;
+            display: inline-block;
+            padding: 10px;
+            width: 200px;
             font-size: 26px;
             position: relative;
             border-radius: 5px;
@@ -69,42 +34,6 @@
         .orderButton:active {
             background-color: rgb(210, 210, 210);
         }
-
-        .stActive {
-            border-radius: 20px;
-            height: 20px;
-            width: 20px;
-            background-color: lightgreen;
-            transform: translate(-50%, -50%);
-        }
-
-        .stUnactive {
-            border-radius: 20px;
-            height: 20px;
-            width: 20px;
-            background-color: red;
-            transform: translate(-50%, -50%);
-        }
-
-        /* width */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        /* Track */
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        /* Handle */
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-        }
-
-        /* Handle on hover */
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
     </style>
 </head>
 
@@ -114,83 +43,51 @@
         style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); height: 20px; width: 20px; border: rgb(0, 0, 0, 0.6) none 10px; border-top: solid; border-radius: 20px; z-index: 1;">
     </div>
 
-    <div id="main"
-        style="position: absolute; width: 90%; height: 85%; top: 50%; left: 50%; transform: translate(-46%, -48%); overflow: auto;">
-        <div class="content">
-            <div style="width: 48%; float: left;">
-                <div style="margin-top: 30px;">
-                    Order ID: <span id="orderID"></span>
-                </div>
-                <table id="orderList"
-                    style="border-collapse: collapse; width: 100%; position: relative; margin-top: 30px;">
-                </table>
-            </div>
+    <div class="body">
 
-            <div style="width: 48%; float: right;">
-                <div style="margin-top: 30px;">Discount</div>
-                <div style="margin-top: 30px;">Voucher</div>
-            </div>
+        <div id="menu"></div>
 
-            <div style="position: absolute; bottom: 3%; width: calc(100% - 20px);">
-                <div style="font-size: 30px; text-align: right; margin-bottom: 10px;">
-                    Tax: ?
-                    <br>
-                    Final Price: RM <span id="totalPrice"></span>
-                </div>
-                <div id="submitOrder" class="orderButton" style="width: 100%;">
-                    Submit
-                </div>
+        <div id="detail" style="grid-area: header;">
+            <div id="Title" class="detail" style="font-size: 50px;">ORDER</div>
+            <div class="detail" style="position: absolute; z-index: 3; right: 30px; white-space: nowrap;">
+                <div id="accStatus" style="position: absolute;"></div>
+                <div id="Account" style="z-index: 3; font-size: 20px; position: relative;">[Account]</div>
             </div>
         </div>
-    </div>
 
-    <div id="menu"
-        style="width: 70px; height: 100vh; background-image: linear-gradient(rgb(240, 240, 240), lightgray); top: 50%; left: calc(2.1% - 10px); position: absolute; transform: translate(0%, -50%);">
-        <div style="top: 50%; position: relative; transform: translate(0%, -50%);">
-            <div class="menuSlot active">
-                <div style="height: 6px;"></div>
-                <div style="height: 8px; background-color: rgb(54, 54, 54); width: 50px;"></div>
-                <div style="height: 10px;"></div>
-                <div style="height: 8px; background-color: rgb(54, 54, 54); width: 50px;"></div>
-                <div style="height: 10px;"></div>
-                <div style="height: 8px; background-color: rgb(54, 54, 54); width: 50px;"></div>
-                <div style="height: 6px;"></div>
-            </div>
-            <div class="menuSlot active" onclick="window.location.href = 'main.html';">
-                <img src="png/home.png" style="width: 50px;" />
-            </div>
-            <div class="menuSlot active" onclick="window.location.href = 'attendance.html';">
-                <img src="png/attendance.png" style="width: 50px;" />
-            </div>
-            <div class="menuSlot active" onclick="window.location.href = 'cash_record.html';">
-                <img src="png/money_bag.png" style="width: 50px;" />
-            </div>
-            <div class="menuSlot active" onclick="window.location.href = 'refund.html';">
-                <img src="png/refund.png" style="width: 50px;" />
-            </div>
-            <div class="menuSlot">
+        <div id="main" style="grid-area: main; overflow: auto; height: 100%; width: 100%;">
+            <div class="content">
 
-            </div>
-            <div class="menuSlot">
+                <div style="padding: 30px; height: 100%;">
+                    <div style="height: 75%;">
+                        Order ID: <span id="orderID"></span>
+                        <table id="orderList"
+                            style="border-collapse: collapse; width: max(400px, 40vw); position: relative; margin-top: 30px;">
+                        </table>
+                    </div>
 
-            </div>
-            <div class="menuSlot">
+                    <div style="padding-bottom: 30px; padding-right: 30px; text-align: right;">
+                        <div style="font-size: 30px; margin-bottom: 10px;">
+                            <br>
+                            Total: RM <span id="totalPrice"></span>
+                        </div>
+                        <div id="submitOrder" class="orderButton">
+                            Submit
+                        </div>
+                    </div>
 
-            </div>
-            <div class="menuSlot active" onclick="logout()">
-                <img src="png/logout.png" style="width: 50px;" />
+                </div>
+
             </div>
         </div>
+
     </div>
 
-    <div id="detail">
-        <div id="Title" class="detail" style="font-size: 50px; left: 10.5%;">ORDER</div>
-        <div class="detail" style="position: absolute; z-index: 3; right: 30px; white-space: nowrap;">
-            <div id="accStatus" style="position: absolute;"></div>
-            <div id="Account" style="z-index: 3; font-size: 20px; position: relative;">[Account]</div>
-        </div>
-    </div>
 </body>
+
+<!-- Import Menu Bar -->
+<script type="text/javascript" src="menu.js"></script>
+
 <script>
 
     var loading;
@@ -320,13 +217,13 @@
 
     // Your web app's Firebase configuration
     const firebaseConfig = {
-        apiKey: "AIzaSyB8vtiyFaH_-GJhSA8OKZ5s7VTDgodmGdY",
-        authDomain: "thelimsheirloom-4eee5.firebaseapp.com",
-        databaseURL: "https://thelimsheirloom-4eee5-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "thelimsheirloom-4eee5",
-        storageBucket: "thelimsheirloom-4eee5.appspot.com",
-        messagingSenderId: "962140854133",
-        appId: "1:962140854133:web:2ec0bfefc68c15ad75e53c"
+        apiKey: "AIzaSyDmYAF5VJ0RntbtrfJ_4Sk9syHYGKev4nw",
+        authDomain: "webpos24-e0eb3.firebaseapp.com",
+        databaseURL: "https://webpos24-e0eb3-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "webpos24-e0eb3",
+        storageBucket: "webpos24-e0eb3.firebasestorage.app",
+        messagingSenderId: "544188889423",
+        appId: "1:544188889423:web:9d7c59723cde33292bad3a"
     };
 
     // Initialize Firebase

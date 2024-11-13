@@ -2,7 +2,7 @@
 
 <head>
     <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
-    <title>TheLim's - Main</title>
+    <title>WebPOS - Main</title>
     <link rel="stylesheet" href="general.css">
     <style>
         .category {
@@ -58,36 +58,7 @@
 
     <div class="body">
         
-        <div id="menu"
-            style="grid-area: menu; width: 70px; height: 100vh; background-image: linear-gradient(rgb(240, 240, 240), lightgray); position: relative; transform: translate(-50%, -50%); top: 50%; left: 50%;">
-            <div style="position: relative; transform: translateY(-50%); top: 50%;">
-                <div class="menuSlot active">
-                    <div style="height: 6px;"></div>
-                    <div style="height: 8px; background-color: rgb(54, 54, 54); width: 50px;"></div>
-                    <div style="height: 10px;"></div>
-                    <div style="height: 8px; background-color: rgb(54, 54, 54); width: 50px;"></div>
-                    <div style="height: 10px;"></div>
-                    <div style="height: 8px; background-color: rgb(54, 54, 54); width: 50px;"></div>
-                    <div style="height: 6px;"></div>
-                </div>
-                <div class="menuSlot now">
-                    <img src="png/home.png" style="width: 50px;" />
-                </div>
-                <div class="menuSlot active" onclick="window.location.href = 'attendance.html';">
-                    <img src="png/attendance.png" style="width: 50px;" />
-                </div>
-                <div class="menuSlot active" onclick="window.location.href = 'cash_record.html';">
-                    <img src="png/money_bag.png" style="width: 50px;" />
-                </div>
-                <div class="menuSlot active" onclick="window.location.href = 'refund.html';">
-                    <img src="png/refund.png" style="width: 50px;" />
-                </div>
-                <div style="position: relative; height: min(60vh, 20vh);"></div>
-                <div class="menuSlot active" onclick="logout()">
-                    <img src="png/logout.png" style="width: 50px;" />
-                </div>
-            </div>
-        </div>
+        <div id="menu"></div>
 
         <div id="detail" style="grid-area: header;">
             <div id="Title" class="detail" style="font-size: 50px;">HOME</div>
@@ -112,6 +83,10 @@
     </div>
 
 </body>
+
+<!-- Import Menu Bar -->
+<script type="text/javascript" src="menu.js"></script>
+
 <script>
 
     var loading;
@@ -378,13 +353,13 @@
 
     // Your web app's Firebase configuration
     const firebaseConfig = {
-        apiKey: "AIzaSyB8vtiyFaH_-GJhSA8OKZ5s7VTDgodmGdY",
-        authDomain: "thelimsheirloom-4eee5.firebaseapp.com",
-        databaseURL: "https://thelimsheirloom-4eee5-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "thelimsheirloom-4eee5",
-        storageBucket: "thelimsheirloom-4eee5.appspot.com",
-        messagingSenderId: "962140854133",
-        appId: "1:962140854133:web:2ec0bfefc68c15ad75e53c"
+        apiKey: "AIzaSyDmYAF5VJ0RntbtrfJ_4Sk9syHYGKev4nw",
+        authDomain: "webpos24-e0eb3.firebaseapp.com",
+        databaseURL: "https://webpos24-e0eb3-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "webpos24-e0eb3",
+        storageBucket: "webpos24-e0eb3.firebasestorage.app",
+        messagingSenderId: "544188889423",
+        appId: "1:544188889423:web:9d7c59723cde33292bad3a"
     };
 
     // Initialize Firebase
