@@ -1,0 +1,37 @@
+<div id="alert"
+    style="position: absolute; top: 30px; align-self: center; display: block; left: 50%; transform: translate(-50%, 0%); text-align: center; padding: 10px; color: white;">
+</div>
+<div id="menu" class="menu" style="width: 32px;">
+
+    <div class="menuChild" onclick="zoomMenu()">
+        <div id="zoomBtn" class="menuIcon">
+            <div style=" border-width: 6px 0px 0px 0px; border-color: rgb(54, 54, 54); border-style: solid; width:
+            32px;">
+            </div>
+            <div
+                style="border-width: 6px 0px 0px 0px; border-color: rgba(0, 0, 0, 0); border-style: solid; width: 0px;">
+            </div>
+            <div
+                style="border-width: 6px 0px 0px 0px; border-color: rgb(54, 54, 54); border-style: solid; width: 32px;">
+            </div>
+            <div
+                style="border-width: 6px 0px 0px 0px; border-color: rgba(0, 0, 0, 0); border-style: solid; width: 0px;">
+            </div>
+            <div
+                style="border-width: 6px 0px 0px 0px; border-color: rgb(54, 54, 54); border-style: solid; width: 32px;">
+            </div>
+        </div>
+        <div class="menuOpt">Minimize</div>
+    </div>
+
+    <div class="menuChild" onclick="locate('attendance')">
+        <img src="png/attendance.png" style="width: 32px; display: inline-block; vertical-align: top;">
+        <div class="menuOpt">Attendance</div>
+    </div>
+
+    <div class="menuChild" onclick="logout()">
+        <img src="png/logout.png" style="width: 32px; display: inline-block; vertical-align: top;">
+        <div class="menuOpt">Log Out</div>
+    </div>
+
+</div>

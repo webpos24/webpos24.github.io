@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+
+<head>
+    <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
+    <title>TheLim's - Refund</title>
+    <link rel="stylesheet" href="general.css">
+    <style>
+        .content {
+            font-size: 20px;
+            font-family: Arial, Helvetica, sans-serif;
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loading"
+        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); height: 20px; width: 20px; border: rgb(0, 0, 0, 0.6) none 10px; border-top: solid; border-radius: 20px; z-index: 1;">
+    </div>
+
+    <div class="body">
+
+        <div id="menu"
+            style="grid-area: menu; width: 70px; height: 100vh; background-image: linear-gradient(rgb(240, 240, 240), lightgray); position: relative; transform: translate(-50%, -50%); top: 50%; left: 50%;">
+            <div style="position: relative; transform: translateY(-50%); top: 50%;">
+                <div class="menuSlot active">
+                    <div style="height: 6px;"></div>
+                    <div style="height: 8px; background-color: rgb(54, 54, 54); width: 50px;"></div>
+                    <div style="height: 10px;"></div>
+                    <div style="height: 8px; background-color: rgb(54, 54, 54); width: 50px;"></div>
+                    <div style="height: 10px;"></div>
+                    <div style="height: 8px; background-color: rgb(54, 54, 54); width: 50px;"></div>
+                    <div style="height: 6px;"></div>
+                </div>
+                <div class="menuSlot active" onclick="window.location.href = 'main.html';">
+                    <img src="png/home.png" style="width: 50px;" />
+                </div>
+                <div class="menuSlot active" onclick="window.location.href = 'attendance.html';">
+                    <img src="png/attendance.png" style="width: 50px;" />
+                </div>
+                <div class="menuSlot active" onclick="window.location.href = 'cash_record.html';">
+                    <img src="png/money_bag.png" style="width: 50px;" />
+                </div>
+                <div class="menuSlot now">
+                    <img src="png/refund.png" style="width: 50px;" />
+                </div>
+                <div style="position: relative; height: min(60vh, 20vh);"></div>
+                <div class="menuSlot active" onclick="logout()">
+                    <img src="png/logout.png" style="width: 50px;" />
+                </div>
+            </div>
+        </div>
+
+        <div id="detail" style="grid-area: header;">
+            <div id="Title" class="detail" style="font-size: 50px;">REFUND</div>
+            <div class="detail" style="position: absolute; z-index: 3; right: 30px; white-space: nowrap;">
+                <div id="accStatus" style="position: absolute;"></div>
+                <div id="Account" style="z-index: 3; font-size: 20px; position: relative;">[Account]</div>
+            </div>
+        </div>
+
+        <div id="main" class="content" style="grid-area: main;">
+
+            <div style="padding: 20px;">
+                <div style="margin: 10px; margin-bottom: 30px;">
+                    List per <input type="number" id="sortLimit" value="10" style="width: 50px; font-size: 20px;"
+                        onfocusout="if (this.value == 0 || this.value > 100) {this.value = 10;}">
+                    <div style="float: right;">
+                        Year <input type="number" id="sYear" style="width: 70px; font-size: 20px;">
+                        Month <input type="number" id="sMonth" style="width: 50px; font-size: 20px;">
+                        Day <input type="number" id="sDay" value="17" style="width: 50px; font-size: 20px;">
+                    </div>
+                </div>
+
+                <div style="overflow-y: scroll;">
+                    <table style="border-collapse: collapse; width: 100%; position: relative;">
+                        <tr class="orderBorder">
+                            <td class="orderBorder" id="tOrderID" style="width: 24%; user-select: none;">Order
+                                ID<span style="float: right;">=</span></td>
+                            <td class="orderBorder" id="tDate" style="width: 24%; user-select: none;">Date</td>
+                            <td class="orderBorder" id="tTime" style="width: 24%; user-select: none;">Time</td>
+                            <td class="orderBorder" id="tTotalPrice" style="width: 24%; user-select: none;">Total
+                                Price(RM)<span style="float: right;">=</span></td>
+                            <td class="orderBorder" style="width: 4%;"></td>
+                        <tr>
+                    </table>
+                </div>
+
+                <div style="overflow-y: scroll; overflow-x: hidden; height: 80%;">
+                    <table id="listOrder" style="border-collapse: collapse; width: 100%; position: relative;">
+                    </table>
+                </div>
+
+                <div style="margin: 10px;">
+                    <div id="listPrev" style="float: left; font-size: 40px; user-select: none;">&lt;</div>
+                    <div id="listNext" style="float: right; font-size: 40px; user-select: none;">&gt;</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</body>
+<script>
+
+    var loading;
+    var sortType = 'orderID';
+    var currentAt, limitAt, listBottom, lastTop;
+    var listTop = '0000001';
+    var sLimit = 10;
+
+    //Auto refresh staff status
+    var currentdate = new Date();
+    var date = currentdate.getFullYear() + "/"
+        + (currentdate.getMonth() + 1) + "/"
+        + currentdate.getDate();
+
+    //assign default month and day
+    document.getElementById("sYear").value = currentdate.getFullYear();
+    document.getElementById("sMonth").value = currentdate.getMonth() + 1;
+    document.getElementById("sDay").value = currentdate.getDate();
+
+    //Start up
+    window.onload = function () {
+        //Get data from session storage
+        var user = sessionStorage.getItem("user");
+        if (user) {
+            document.getElementById("Account").innerHTML = user;
+
+            // Loading animation
+            var rotate = 0;
+            loading = setInterval(() => {
+                document.getElementById("loading").style.transform = ("translate(-50%, -50%) rotate(" + rotate + "deg)");
+                rotate += 10;
+                if (rotate > 360) {
+                    rotate = 0;
+                }
+            }, 10);
+
+            setTimeout(() => {
+                clearInterval(loading);
+            }, 3000);
+
+        } else {
+
+            //session outdated
+            var info = "Session outdated.\n Please login again.";
+            document.body.innerHTML += `
+                <div style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
+                    <div style="font-size: 30px; white-space: pre-line; text-align: center; position: absolute; top: 50%; left: 50%; padding: 10px 30px 10px 30px; transform: translate(-50%, -50%); border: 1px solid rgba(0, 0, 0, 0.6); background-color: rgba(255, 255, 255, 0.6);"
+                    >${info}
+                        <button type="button" onclick="window.location.href = 'login.html'">Return to Login</button>
+                    </div>
+                </div>
+            `;
+        }
+
+    }
+
+    function logout() {
+        //Clear session storage *temp
+        var user = sessionStorage.getItem("user");
+        if (user) {
+            window.sessionStorage.removeItem("user");
+            window.location.href = "login.html";
+        }
+    }
+
+</script>
+
+<script type="module">
+
+    currentAt = startAfter(listTop);
+    limitAt = limitToFirst(sLimit);
+
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+
+    //createUserWithEmailAndPassword
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+    import { getDatabase, get, set, ref, child, update, onValue, query, orderByChild, orderByKey, limitToFirst, limitToLast, startAt, startAfter, endBefore } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyB8vtiyFaH_-GJhSA8OKZ5s7VTDgodmGdY",
+        authDomain: "thelimsheirloom-4eee5.firebaseapp.com",
+        databaseURL: "https://thelimsheirloom-4eee5-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "thelimsheirloom-4eee5",
+        storageBucket: "thelimsheirloom-4eee5.appspot.com",
+        messagingSenderId: "962140854133",
+        appId: "1:962140854133:web:2ec0bfefc68c15ad75e53c"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const database = getDatabase(app);
+
+    // If logged out somewhere
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // User is signed in, see docs for a list of available properties
+            // https://firebase.google.com/docs/reference/js/auth.user
+            console.log("[User Credential] " + user.uid);
+
+            // Remove loading animation
+            clearInterval(loading);
+            document.getElementById("loading").remove();
+
+            // ...
+        } else {
+            // User is signed out
+            // ...
+            alert("Oh no, you have been signed out.");
+            window.location.href = "login.html"
+        }
+    });
+
+    onValue(ref(database, 'staffcode/' + sessionStorage.getItem('staffCode') + '/attendance/' + date), (snapshot) => {
+        if (snapshot.exists()) {
+            //Find unfinish clock-in - Active
+            var end = false;
+            snapshot.forEach(function (childSnapshot) {
+                if (childSnapshot.child("end").val() == false) {
+                    end = true;
+                    document.getElementById("accStatus").className = "stActive detail";
+                }
+            });
+            //If no unfinish clock-in - Unactive
+            if (end == false) {
+                document.getElementById("accStatus").className = "stUnactive detail";
+            }
+        }
+    });
+
+    //Default list order sorting
+    sortOrder();
+
+    //Event listener for sorting
+    tOrderID.addEventListener('click', (e) => {
+        listTop = '0000001';
+        sortType = 'orderID';
+        sortOrder();
+    });
+
+    tTotalPrice.addEventListener('click', (e) => {
+        listTop = 0;
+        sortType = 'totalPrice';
+        sortOrder();
+    });
+
+    //sortLimit input
+    sortLimit.addEventListener('focusout', (e) => {
+        sortOrder();
+    })
+
+    //sortDate input
+    sYear.addEventListener('focusout', (e) => {
+        listTop = '0000001';
+        sortOrder();
+    })
+
+    sMonth.addEventListener('focusout', (e) => {
+        listTop = '0000001';
+        sortOrder();
+    })
+
+    sDay.addEventListener('focusout', (e) => {
+        listTop = '0000001';
+        sortOrder();
+    })
+
+    //list next
+    listNext.addEventListener('click', (e) => {
+        currentAt = startAfter(listBottom);
+        sortOrder('next');
+    })
+
+    //list prev
+    listPrev.addEventListener('click', (e) => {
+        currentAt = endBefore(listTop);
+        sortOrder('prev');
+    })
+
+    function sortOrder(direction) {
+
+        var cOrderID, cDate, cTime, cTotalPrice;
+        var orderBy;
+
+        //Retrieve input sort limt
+        sLimit = +document.getElementById("sortLimit").value;
+
+        if (direction == 'next') {
+            limitAt = limitToFirst(sLimit);
+        } else if (direction == 'prev') {
+            limitAt = limitToLast(sLimit);
+        } else {
+            //Refresh limit, starting at top index to limit
+            limitAt = limitToFirst(+document.getElementById("sortLimit").value);
+            currentAt = startAt(listTop);
+        }
+
+        //Retrieve nput date sorting value
+        if (document.getElementById("sDay").value == "-") {
+
+        } else {
+            var sDate = document.getElementById("sYear").value + "/" + document.getElementById("sMonth").value + "/" + document.getElementById("sDay").value;
+        }
+
+        switch (sortType) {
+            case 'orderID':
+                cOrderID = 'rgb(245, 245, 245)';
+                orderBy = orderByKey();
+                break;
+
+            case 'totalPrice':
+                cTotalPrice = 'rgb(245, 245, 245)';
+                orderBy = orderByChild(sortType);
+                break;
+
+            default:
+                console.log("Error!");
+                break;
+        }
+
+        //Sorting interaction
+        document.getElementById('tOrderID').style.backgroundColor = '';
+        document.getElementById('tOrderID').childNodes[1].innerHTML = '=';
+        document.getElementById('tTotalPrice').style.backgroundColor = '';
+        document.getElementById('tTotalPrice').childNodes[1].innerHTML = '=';
+
+        document.getElementById("t" + sortType.charAt(0).toUpperCase() + sortType.slice(1)).style.backgroundColor = 'rgb(245, 245, 245)';
+        //Changing sorting symbol "=" & "V"
+        document.getElementById("t" + sortType.charAt(0).toUpperCase() + sortType.slice(1)).childNodes[1].innerHTML = 'v';
+
+        var resetList = false;
+        var index;
+
+        //Get list of order
+        onValue(query(ref(database, 'staffcode/' + sessionStorage.getItem('staffCode') + '/order/' + sDate), orderBy, limitAt, currentAt), (snapshot) => {
+
+            if (snapshot.exists()) {
+
+                if (resetList == false) {
+                    //Reset list
+                    document.getElementById('listOrder').innerHTML = '';
+                    resetList = true;
+                }
+
+                index = 0;
+                //Order list
+                snapshot.forEach((childSnapshot) => {
+
+                    //Update List function, private functon
+                    document.getElementById('listOrder').innerHTML += `
+                        <tr class="orderBorder">
+                            <td class="orderBorder" style="width: 24%; background-color: ${cOrderID}">${childSnapshot.key}</td>
+                            <td class="orderBorder" style="width: 24%; background-color: ${cDate}">${childSnapshot.ref._path.pieces_[3] + '/' + childSnapshot.ref._path.pieces_[4] + '/' + childSnapshot.ref._path.pieces_[5]}</td>
+                            <td class="orderBorder" style="width: 24%; background-color: ${cTime}">${childSnapshot.val().time}</td>
+                            <td class="orderBorder" style="width: 24%; background-color: ${cTotalPrice}">${childSnapshot.val().totalPrice.toFixed(2)}</td>
+                            <td class="orderBorder" id="refund_${childSnapshot.key}" style="width: 4%; text-align: center;"><img src="png/refund_small.png" style="width: 22px;"></td>
+                        <tr>
+                    `;
+
+                    if (childSnapshot.val().refund == true) {
+                        document.getElementById('listOrder').innerHTML += `
+                            <div style="position: absolute; outline: 1px solid gray; height: 0%; width: 100%; transform: translate(0%, -15px);"><div>
+                        `;
+                    } else {
+                        setTimeout(() => {
+                            document.getElementById("refund_" + childSnapshot.key).addEventListener('click', (e) => {
+                                // console.log('refund ' + childSnapshot.key + ' time:' + sDate);
+                                update(ref(database, 'staffcode/' + sessionStorage.getItem('staffCode') + '/order/' + sDate + '/' + childSnapshot.key), {
+                                    refund: true
+                                })
+                                sortOrder();
+                            });
+                        }, 1);
+                    }
+
+
+                    switch (sortType) {
+                        case 'orderID':
+                            if (index == 0) {
+                                listTop = childSnapshot.key;
+                            }
+                            listBottom = childSnapshot.key;
+                            break;
+
+                        case 'totalPrice':
+                            if (index == 0) {
+                                listTop = childSnapshot.val().totalPrice;
+                            }
+                            listBottom = childSnapshot.val().totalPrice - 1;
+                            break;
+
+                        default:
+                            console.log("Error!");
+                            break;
+                    }
+
+                    index++;
+                })
+
+            } else {
+                console.log('Data is ended.');
+            }
+
+        }, {
+            onlyOnce: true
+        });
+
+    }
+
+</script>
+
+</html>

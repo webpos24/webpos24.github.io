@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<head>
+    <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
+    <title>JCHS POS - Staff Code</title>
+    <style>
+        .alignCenter {
+            position: absolute;
+            top: 50%;
+            align-self: center;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .bold {
+            font-weight: bold;
+            font-size: 50px;
+        }
+
+        .pin {
+            font-size: 50px;
+            text-align: center;
+            width: 50px;
+            border-width: 0 0 2px;
+        }
+
+        .pin:focus {
+            border-width: 0 0 3px;
+            outline: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="alert"
+        style="position: absolute; top: 30px; align-self: center; left: 50%; transform: translate(-50%, 0%); text-align: center; padding: 10px; color: white;">
+    </div>
+    <form id="staffPin" class="alignCenter bold">
+        <label>Staff PIN</label>
+        <hr>
+        <input id="pin1" type="text" class="pin" minlength="1" maxlength="1" pattern="[0-9]{1}"
+            onkeydown="nextPin('pin1')" oninput="isNum('pin1')"></input>
+        <input id="pin2" type="text" class="pin" minlength="1" maxlength="1" pattern="[0-9]{1}"
+            onkeydown="nextPin('pin2')" oninput="isNum('pin2')"></input>
+        <input id="pin3" type="text" class="pin" minlength="1" maxlength="1" pattern="[0-9]{1}"
+            onkeydown="nextPin('pin3')" oninput="isNum('pin3')"></input>
+        <input id="pin4" type="text" class="pin" minlength="1" maxlength="1" pattern="[0-9]{1}"
+            onkeydown="nextPin('pin4')" oninput="isNum('pin4')"></input>
+        <br>
+        <button id="loginStaff" type="button" style="font-size: 20px; padding: 3px 10px 3px 10px;">
+            Log In</button>
+    </form>
+</body>
+<script>
+
+    //Start up
+    window.onload = function () {
+        //Get data from session storage
+        var user = sessionStorage.getItem("user");
+        if (user) {
+            alertFunc(user + " is logged out.");
+            window.sessionStorage.removeItem("user");
+        }
+    }
+
+    //Alert function
+    var alertTimeout = 0;
+    function alertFunc(text, timeAdd = 0) {
+        document.getElementById('alert').innerHTML = text;
+        document.getElementById('alert').style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+        if (alertTimeout <= 0) {
+            var alertTimeoutInterval = setInterval(() => {
+                alertTimeout -= 1;
+                if (alertTimeout <= 0) {
+                    document.getElementById('alert').innerHTML = '';
+                    document.getElementById('alert').style.backgroundColor = 'rgba(0, 0, 0, 0)';
+                    clearInterval(alertTimeoutInterval);
+                    alertTimeout = 0;
+                }
+            }, 1)
+        }
+        alertTimeout = 600 + timeAdd;
+    }
+    function getId(id) {
+        return document.getElementById(id).value;
+    }
+    function isNum(id) {
+        if (!(getId(id) >= 0 && getId(id) <= 9) || getId(id) == " ") {
+            document.getElementById(id).value = '';
+        }
+    }
+    function nextPin(id) {
+        var key = event.keyCode;
+        document.getElementById(id).selectionStart = 0;
+        document.getElementById(id).selectionEnd = 1;
+        switch (true) {
+            case (getId(id) && key >= 48 && key <= 57 && parseInt(id[3]) < 4):
+                id = "pin" + (parseInt(id[3]) + 1);
+                if (!getId(id)) {
+                    document.getElementById(id).focus();
+                } else {
+                    id = "pin" + (parseInt(id[3]) - 1);
+                }
+                break;
+            case (key == 37 && parseInt(id[3]) > 1) || (getId(id) == "" && key == 8 && parseInt(id[3]) > 1):
+                id = "pin" + (parseInt(id[3]) - 1);
+                document.getElementById(id).focus();
+                break;
+            case (key == 39 && parseInt(id[3]) < 4):
+                id = "pin" + (parseInt(id[3]) + 1);
+                document.getElementById(id).focus();
+                break;
+            case (key == 13):
+                login(getId('pin1'), getId('pin2'), getId('pin3'), getId('pin4'))
+                break;
+            default:
+                break;
+        }
+    }
+    function visible(id) {
+        var x = document.getElementById(id);
+        if (x.style.display === "none") {
+            x.style.display = "block";
+        } else {
+            x.style.display = "none";
+        }
+    }
+
+</script>
+
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+
+    //createUserWithEmailAndPassword
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+    import { getDatabase, set, ref, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+        const firebaseConfig = {
+        apiKey: "AIzaSyB8vtiyFaH_-GJhSA8OKZ5s7VTDgodmGdY",
+        authDomain: "thelimsheirloom-4eee5.firebaseapp.com",
+        databaseURL: "https://thelimsheirloom-4eee5-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "thelimsheirloom-4eee5",
+        storageBucket: "thelimsheirloom-4eee5.appspot.com",
+        messagingSenderId: "962140854133",
+        appId: "1:962140854133:web:2ec0bfefc68c15ad75e53c"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const database = getDatabase(app);
+
+    // If logged out somewhere
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // User is signed in, see docs for a list of available properties
+            // https://firebase.google.com/docs/reference/js/auth.user
+            console.log("[User Credential] " + user.uid);
+
+            // ...
+        } else {
+            // User is signed out
+            // ...
+            alert("Oh no, you have been signed out.");
+            window.location.href = "login.html"
+        }
+    });
+
+    //Get Data
+    loginStaff.addEventListener('click', (e) => {
+
+        onValue(ref(database, 'staffcode/' + (getId('pin1') + getId('pin2') + getId('pin3') + getId('pin4')) + '/name'), (snapshot) => {
+            const data = snapshot.val();
+
+            console.log(snapshot.val());
+
+            if (data != null) {
+                //Next page
+                sessionStorage.setItem("user", data);
+                sessionStorage.setItem("staffCode", (getId('pin1') + getId('pin2') + getId('pin3') + getId('pin4')));
+                sessionStorage.setItem("order", JSON.stringify([]));
+                window.location.href = "main.html";
+            } else {
+                alertFunc("No such staff.");
+            }
+        });
+
+    });
+
+</script>
+
+</html>

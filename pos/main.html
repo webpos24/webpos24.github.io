@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+
+<head>
+    <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
+    <title>TheLim's - Main</title>
+    <link rel="stylesheet" href="general.css">
+    <style>
+        .category {
+            font-size: 20px;
+            font-family: Arial, Helvetica, sans-serif;
+            overflow: hidden;
+            margin: 10px;
+            height: 123px;
+        }
+
+        .item {
+            font-size: 20px;
+            height: 80px;
+            min-width: 120px;
+            padding: 0px 15px;
+            display: inline-table;
+            border-radius: 10px;
+            background: linear-gradient(to right bottom, rgb(240, 240, 240), rgb(221, 221, 221));
+            margin: 10px;
+            text-align: center;
+            user-select: none;
+        }
+
+        .item:active {
+            background: linear-gradient(to right bottom, rgb(226, 226, 226), rgb(197, 197, 197));
+        }
+
+        .orderButton {
+            user-select: none;
+            width: 100%;
+            height: 30px;
+            font-size: 26px;
+            position: relative;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            background-color: rgb(230, 230, 230);
+            color: rgb(50, 50, 50);
+            text-align: center;
+        }
+
+        .orderButton:active {
+            background-color: rgb(210, 210, 210);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loading"
+        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); height: 20px; width: 20px; border: rgb(0, 0, 0, 0.6) none 10px; border-top: solid; border-radius: 20px; z-index: 1;">
+    </div>
+
+    <div class="body">
+        
+        <div id="menu"
+            style="grid-area: menu; width: 70px; height: 100vh; background-image: linear-gradient(rgb(240, 240, 240), lightgray); position: relative; transform: translate(-50%, -50%); top: 50%; left: 50%;">
+            <div style="position: relative; transform: translateY(-50%); top: 50%;">
+                <div class="menuSlot active">
+                    <div style="height: 6px;"></div>
+                    <div style="height: 8px; background-color: rgb(54, 54, 54); width: 50px;"></div>
+                    <div style="height: 10px;"></div>
+                    <div style="height: 8px; background-color: rgb(54, 54, 54); width: 50px;"></div>
+                    <div style="height: 10px;"></div>
+                    <div style="height: 8px; background-color: rgb(54, 54, 54); width: 50px;"></div>
+                    <div style="height: 6px;"></div>
+                </div>
+                <div class="menuSlot now">
+                    <img src="png/home.png" style="width: 50px;" />
+                </div>
+                <div class="menuSlot active" onclick="window.location.href = 'attendance.html';">
+                    <img src="png/attendance.png" style="width: 50px;" />
+                </div>
+                <div class="menuSlot active" onclick="window.location.href = 'cash_record.html';">
+                    <img src="png/money_bag.png" style="width: 50px;" />
+                </div>
+                <div class="menuSlot active" onclick="window.location.href = 'refund.html';">
+                    <img src="png/refund.png" style="width: 50px;" />
+                </div>
+                <div style="position: relative; height: min(60vh, 20vh);"></div>
+                <div class="menuSlot active" onclick="logout()">
+                    <img src="png/logout.png" style="width: 50px;" />
+                </div>
+            </div>
+        </div>
+
+        <div id="detail" style="grid-area: header;">
+            <div id="Title" class="detail" style="font-size: 50px;">HOME</div>
+            <div class="detail" style="position: absolute; z-index: 3; right: 30px; white-space: nowrap;">
+                <div id="accStatus" style="position: absolute;"></div>
+                <div id="Account" style="z-index: 3; font-size: 20px; position: relative;">[Account]</div>
+            </div>
+        </div>
+
+        <div id="main" style="grid-area: main; overflow: auto;">
+            <div id="categoryList">
+            </div>
+        </div>
+
+    </div>
+
+    <div id="order"></div>
+
+    <div id="resizeOrder"
+        style="position: absolute; top: 50%; transform: translate(0%, -50%); right: 0px; height: 50px; width: 25px; border-radius: 50px 0px 0px 50px; background-color: rgb(255, 255, 255, 0.9); filter: drop-shadow(6px 0px 15px rgb(0, 0, 0, 0.6));"
+        onclick="order();">
+    </div>
+
+</body>
+<script>
+
+    var loading;
+
+    //Start up
+    window.onload = function () {
+        //Get data from session storage
+        var user = sessionStorage.getItem("user");
+        if (user) {
+            document.getElementById("Account").innerHTML = user;
+
+            // Loading animation
+            var rotate = 0;
+            loading = setInterval(() => {
+                document.getElementById("loading").style.transform = ("translate(-50%, -50%) rotate(" + rotate + "deg)");
+                rotate += 10;
+                if (rotate > 360) {
+                    rotate = 0;
+                }
+            }, 10);
+
+            setTimeout(() => {
+                clearInterval(loading);
+            }, 3000);
+
+        } else {
+
+            //session outdated
+            var info = "Session outdated.\n Please login again.";
+            document.body.innerHTML += `
+                <div style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
+                    <div style="font-size: 30px; white-space: pre-line; text-align: center; position: absolute; top: 50%; left: 50%; padding: 10px 30px 10px 30px; transform: translate(-50%, -50%); border: 1px solid rgba(0, 0, 0, 0.6); background-color: rgba(255, 255, 255, 0.6);"
+                    >${info}
+                        <button type="button" onclick="window.location.href = 'staffcode.html'">Return to Login</button>
+                    </div>
+                </div>
+            `;
+
+        }
+
+    }
+
+    //Scroll function
+    function advScr(elemId) {
+        var tar = document.getElementById("itemList_" + elemId);
+        tar.scrollLeft == 0 ? document.getElementById("left_" + elemId).style.display = "none" : document.getElementById("left_" + elemId).style.display = "block";
+        tar.scrollLeft + tar.clientWidth == tar.scrollWidth ? document.getElementById("right_" + elemId).style.display = "none" : document.getElementById("right_" + elemId).style.display = "block";
+
+        //console.log("Hi " + "itemList_" + elemId + " " + document.getElementById("itemList_" + elemId).scrollLeft);
+    }
+
+    //Retrieve item from array using index
+    function order(name, price, category) {
+
+        document.getElementById("order").innerHTML += `
+            <div style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1; background-color: rgb(0, 0, 0, 0.3);" onclick="document.getElementById('order').innerHTML = '';"></div>
+            
+            <div style="z-index: 2; position: absolute; right: 0px; filter: drop-shadow(0px 0px 25px rgb(0, 0, 0, 0.3));">
+                <div id="resizeOrder" style="position: absolute; right: 500px; top: 50vh; transform: translate(0%, -50%); height: 50px; width: 25px; border-radius: 50px 0px 0px 50px; background-color: rgb(255, 255, 255, 0.9);"></div>
+                <div id="orderContainer" style="position: absolute; right: 0px; height: 90vh; padding: 5vh 25px 5vh 25px; width: 450px; background-color: rgb(255, 255, 255, 0.95); overflow: auto;">
+
+                    <div style="position: relative; top: 5%;">
+                        <div id="newItemSpace"></div>
+                        <div style="font-size: 30px; position: relative;">
+                            Order
+                        </div>
+                        <table id="orderList" style="border-collapse: collapse; width: 100%; position: relative; margin-top: 10px;">
+                            <tr class="orderBorder">
+                                <td class="orderBorder" style="width: 28px;"></td>
+                                <td class="orderBorder">Name</td>
+                                <td class="orderBorder" style="width: 90px;">Category</td>
+                                <td class="orderBorder" style="width: 80px;">Price(RM)</td>
+                                <td class="orderBorder" style="width: 20px;"></td>
+                            <tr>
+                        </table>
+                        <div id="submitOrder" style="user-select: none; width: 100%; height: 30px; font-size: 26px; position: relative; margin-top: 20px; text-align: center;">
+                            Submit
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        `;
+
+        //If order is not empty
+        if (JSON.parse(sessionStorage.getItem("order")).length != 0 && JSON.parse(sessionStorage.getItem("order")).length != null) {
+            document.getElementById("submitOrder").outerHTML = `
+                <div id="submitOrder" class="orderButton" onclick="window.location.href = 'order.html'">
+                    Submit
+                </div>
+            `;
+        }
+
+        if (name != null && price != null && category != null) {
+
+            document.getElementById("newItemSpace").outerHTML += `
+                <div id="newItemSpace" style="margin-bottom: 50px;">
+                    <div style="font-size: 30px; position: relative;">
+                        New Item
+                    </div>
+                    <table id="newItem" style="border-collapse: collapse; width: 100%; position: relative; margin-top: 10px;">
+                        <tr class="orderBorder">
+                            <td class="orderBorder" style="width: 28px;"></td>
+                            <td class="orderBorder">Name</td>
+                            <td class="orderBorder" style="width: 90px;">Category</td>
+                            <td class="orderBorder" style="width: 80px;">Price(RM)</td>
+                        <tr>
+                    </table>
+                    <div id="addOrder" class="orderButton" onclick="addOrder('${name}', ${price}, '${category}')">
+                        Add to order
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('newItem').innerHTML += `
+                <tr class="orderBorder">
+                    <td class="orderBorder">1.</td>
+                    <td class="orderBorder">${name}</td>
+                    <td class="orderBorder">${category}</td>
+                    <td class="orderBorder" style="text-align: right;">${price.toFixed(2)}</td>
+                </tr>
+            `;
+        }
+
+        var order = JSON.parse(sessionStorage.getItem("order"));
+        var totalPrice = 0;
+
+        for (var i = 0; i < order.length; i++) {
+            var name = order[i][0];
+            var price = order[i][1].toFixed(2);
+            var category = order[i][2];
+            totalPrice += order[i][1];
+
+            document.getElementById('orderList').innerHTML += `
+                <tr class="orderBorder">
+                    <td class="orderBorder">${i + 1}.</td>
+                    <td class="orderBorder">${name}</td>
+                    <td class="orderBorder">${category}</td>
+                    <td class="orderBorder" style="text-align: right;">${price}</td>
+                    <td class="orderBorder" style="user-select: none; width: 20px; font-family: Arial, sans-serif; color: red; text-align: center;" onclick="removeOrder(${i});">x</td>
+                </tr>
+            `;
+        }
+
+        document.getElementById('orderList').innerHTML += `
+            <tr class="orderBorder">
+                <td class="orderBorder" colspan="3" style="text-align: right;">Total</td>
+                <td class="orderBorder" style="text-align: right;">${totalPrice.toFixed(2)}</td>
+            </tr>
+        `;
+
+    }
+
+    //add item to order
+    function addOrder(name, price, category) {
+
+        //enable submit
+        document.getElementById("submitOrder").outerHTML = `
+            <div id="submitOrder" class="orderButton" onclick="window.location.href = 'order.html';">
+                Submit
+            </div>
+        `;
+
+        //get array from storage
+        var order = JSON.parse(sessionStorage.getItem("order"));
+        order.push([name, price, category]);
+        sessionStorage.setItem("order", JSON.stringify(order));
+        document.getElementById("addOrder").outerHTML = `
+            <div id="addOrder" style="width: 100%; height: 30px; font-size: 26px; position: relative; margin-top: 20px; text-align: center;">
+                Added <span style="color: green;">✓</span>
+            </div>
+        `;
+
+        refreshOrder();
+    }
+
+    //refresh order list
+    function refreshOrder() {
+        document.getElementById('orderList').innerHTML = `
+            <table id="orderList" style="border-collapse: collapse; width: 100%; position: relative; margin-top: 10px;">
+                <tr class="orderBorder">
+                    <td class="orderBorder" style="width: 28px;"></td>
+                    <td class="orderBorder">Name</td>
+                    <td class="orderBorder" style="width: 90px;">Category</td>
+                    <td class="orderBorder" style="width: 80px;">Price(RM)</td>
+                    <td class="orderBorder" style="width: 20px;"></td>
+                <tr>
+            </table>
+        `;
+
+        //Display order list
+        var order = JSON.parse(sessionStorage.getItem("order"));
+        var totalPrice = 0;
+
+        for (var i = 0; i < order.length; i++) {
+            var name = order[i][0];
+            var price = order[i][1].toFixed(2);
+            var category = order[i][2];
+            totalPrice += order[i][1];
+
+            if (i == order.length - 1) {
+                document.getElementById('orderList').innerHTML += `
+                    <tr class="orderBorder" style="background-color: rgb(204, 255, 255);">
+                        <td class="orderBorder">${i + 1}.</td>
+                        <td class="orderBorder">${name}</td>
+                        <td class="orderBorder">${category}</td>
+                        <td class="orderBorder" style="text-align: right;">${price}</td>
+                        <td class="orderBorder" style="user-select: none; width: 20px; font-family: Arial, sans-serif; color: red; text-align: center;" onclick="removeOrder(${i});">x</td>
+                    </tr>
+                `;
+            } else {
+                document.getElementById('orderList').innerHTML += `
+                    <tr class="orderBorder">
+                        <td class="orderBorder">${i + 1}.</td>
+                        <td class="orderBorder">${name}</td>
+                        <td class="orderBorder">${category}</td>
+                        <td class="orderBorder" style="text-align: right;">${price}</td>
+                        <td class="orderBorder" style="user-select: none; width: 20px; font-family: Arial, sans-serif; color: red; text-align: center;" onclick="removeOrder(${i});">x</td>
+                    </tr>
+                `;
+            }
+        }
+
+        //Refresh total price
+        document.getElementById('orderList').innerHTML += `
+            <tr class="orderBorder">
+                <td class="orderBorder" colspan="3" style="text-align: right;">Total</td>
+                <td class="orderBorder" style="text-align: right;">${totalPrice.toFixed(2)}</td>
+            </tr>
+        `;
+    }
+
+    //remove item from order
+    function removeOrder(index) {
+        var order = JSON.parse(sessionStorage.getItem("order"));
+        order.splice(index, 1);
+        sessionStorage.setItem("order", JSON.stringify(order));
+        refreshOrder();
+    }
+
+    function logout() {
+        //Clear session storage *temp
+        var user = sessionStorage.getItem("user");
+        if (user) {
+            sessionStorage.removeItem("user");
+            sessionStorage.setItem("order", JSON.stringify([]));
+            window.location.href = "staffcode.html";
+        }
+    }
+
+</script>
+
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+
+    //createUserWithEmailAndPassword
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+    import { getDatabase, set, ref, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyB8vtiyFaH_-GJhSA8OKZ5s7VTDgodmGdY",
+        authDomain: "thelimsheirloom-4eee5.firebaseapp.com",
+        databaseURL: "https://thelimsheirloom-4eee5-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "thelimsheirloom-4eee5",
+        storageBucket: "thelimsheirloom-4eee5.appspot.com",
+        messagingSenderId: "962140854133",
+        appId: "1:962140854133:web:2ec0bfefc68c15ad75e53c"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const database = getDatabase(app);
+
+    // If logged out somewhere
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // User is signed in, see docs for a list of available properties
+            // https://firebase.google.com/docs/reference/js/auth.user
+            console.log("[User Credential] " + user.uid);
+
+            // Remove loading animation
+            clearInterval(loading);
+            document.getElementById("loading").remove();
+
+            // ...
+        } else {
+            // User is signed out
+            // ...
+            alert("Oh no, you have been signed out.");
+            window.location.href = "login.html"
+        }
+    });
+
+    //Auto refresh staff status
+    var currentdate = new Date();
+    var date = currentdate.getFullYear() + "/"
+        + (currentdate.getMonth() + 1) + "/"
+        + currentdate.getDate();
+
+    //Setting up categories and items
+    onValue(ref(database, 'services/categories'), (snapshot) => {
+        if (snapshot.exists()) {
+
+            document.getElementById("categoryList").innerHTML = '';
+
+            //Find services categories and loop
+            var end = false;
+            snapshot.forEach(function (categorySnapshot) {
+
+                //initialise category list and item list
+                //Left and Right arrow
+                document.getElementById("categoryList").innerHTML += `
+                    <div class="category">
+                        <div id="right_${categorySnapshot.key}" style="z-index: 1; display: none; border: 1px solid black; border-radius: 5px; background-color: white; position: absolute; right: 30px; padding: 20px 10px 20px 2px; transform: translate(0%, 78%);" onclick="document.getElementById('itemList_' + '${categorySnapshot.key}').scrollBy(170, 0);">
+                            <div style="border-style: solid solid none none; height: 15px; width: 15px; border-width: 2px; transform: rotate(45deg);">
+                            </div>
+                        </div>
+                        <div id="left_${categorySnapshot.key}" style="z-index: 1; border: 1px solid black; border-radius: 5px; background-color: white; display: none; position: absolute; left: 30px; padding: 20px 2px 20px 10px; transform: translate(0%, 78%);" onclick="document.getElementById('itemList_' + '${categorySnapshot.key}').scrollBy(-170, 0);">
+                            <div style="border-style: solid solid none none; height: 15px; width: 15px; border-width: 2px; transform: rotate(225deg);">
+                            </div>
+                        </div>
+                        <div style="position: relative; left: 10px;">${categorySnapshot.key}</div>
+                        <div id="itemList_${categorySnapshot.key}" onscroll="advScr('${categorySnapshot.key}');" style="overflow: auto; font-size: 0px; white-space: nowrap;">
+                        </div>
+                    </div>
+                `;
+
+                // Category is available
+                end = true;
+
+                //Set item list in category
+                categorySnapshot.forEach(function (childSnapshot) {
+
+                    document.getElementById("itemList_" + categorySnapshot.key).innerHTML += `
+                        <div class="item" style="white-space: normal;" onclick="order('${childSnapshot.key}', ${childSnapshot.val()}, '${categorySnapshot.key}');">
+                            <div style="position: relative; transform: translate(-50%, -50%); top: 50%; left: 50%;">
+                                <div>${childSnapshot.key}</div>
+                                <div>RM ${childSnapshot.val().toFixed(2)}</div>
+                            </div>
+                        </div>
+                    `;
+
+                })
+
+                //Detect if elements' total width is out of size
+                if (categorySnapshot.size * 170 > document.getElementById("itemList_" + categorySnapshot.key).clientWidth) {
+                    document.getElementById("right_" + categorySnapshot.key).style.display = "block";
+                }
+
+            });
+            //If services are empty
+            if (end == false) {
+                console.log("services are empty");
+            }
+
+        }
+    });
+
+    // Staff Status
+    onValue(ref(database, 'staffcode/' + sessionStorage.getItem('staffCode') + '/attendance/' + date), (snapshot) => {
+        if (snapshot.exists()) {
+            //Find unfinish clock-in - Active
+            var end = false;
+            snapshot.forEach(function (childSnapshot) {
+                if (childSnapshot.child("end").val() == false) {
+                    end = true;
+                    document.getElementById("accStatus").className = "stActive detail";
+                }
+            });
+            //If no unfinish clock-in - Unactive
+            if (end == false) {
+                document.getElementById("accStatus").className = "stUnactive detail";
+            }
+        }
+    });
+
+</script>
+
+</html>

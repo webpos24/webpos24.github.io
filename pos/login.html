@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+<head>
+    <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>JCHS POS</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* width */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+        }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+        <div style="font-size: 50px;">POS</div>
+        <br>
+        <br>
+        Account
+        <input id="account" type="text">
+        <br>
+        <br>
+        Password
+        <input id="pass" type="text">
+        <br>
+        <br>
+        <button id="login">Login</button>
+    </div>
+</body>
+
+<script>
+</script>
+
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+
+    //createUserWithEmailAndPassword
+    import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+    import { getDatabase, set, ref, update } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyB8vtiyFaH_-GJhSA8OKZ5s7VTDgodmGdY",
+        authDomain: "thelimsheirloom-4eee5.firebaseapp.com",
+        databaseURL: "https://thelimsheirloom-4eee5-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "thelimsheirloom-4eee5",
+        storageBucket: "thelimsheirloom-4eee5.appspot.com",
+        messagingSenderId: "962140854133",
+        appId: "1:962140854133:web:2ec0bfefc68c15ad75e53c"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const database = getDatabase(app);
+
+    // Signout first when direct to login page
+    // Detect if current user exists
+    var trackTimes = 0;
+    var trackUser = setInterval(() => {
+        trackTimes += 100;
+        if (auth.currentUser) {
+
+            signOut(auth).then(() => {
+                // Sign-out successful.
+                console.log("Current account has been signed out.");
+            }).catch((error) => {
+                // An error happened.
+                console.log(error);
+            });
+
+            clearInterval(trackUser);
+        }
+        if (trackTimes >= 2000) {
+            console.log("Prevent looping too much, stop tracking current user.");
+            clearInterval(trackUser);
+        }
+    }, 100);
+
+    login.addEventListener('click', (e) => {
+
+        //Retrieve input
+        var account = document.getElementById('account').value;
+        var pass = document.getElementById('pass').value;
+
+        signInWithEmailAndPassword(auth, account, pass)
+            .then((userCredential) => {
+                // Signed in 
+                const user = userCredential.user;
+                var currentdate = new Date();
+                var date = currentdate.getFullYear() + "/"
+                    + (currentdate.getMonth() + 1) + "/"
+                    + currentdate.getDate();
+
+                var time = ((currentdate.getHours() / 10 >= 1) ? currentdate.getHours() : "0" + currentdate.getHours()) + ":"
+                    + ((currentdate.getMinutes() / 10 >= 1) ? currentdate.getMinutes() : "0" + currentdate.getMinutes()) + ":"
+                    + ((currentdate.getSeconds() / 10 >= 1) ? currentdate.getSeconds() : "0" + currentdate.getSeconds());
+
+                update(ref(database, 'users/' + user.uid), {
+                    last_login: (date + "@" + time),
+                })
+                    .then(() => {
+                        // User login successfully!
+                        console.log(user.uid + ' logged in.');
+                        window.location.href = "staffcode.html";
+
+                    })
+                    .catch((error) => {
+                        // The write failed...
+                        console.log(error);
+                    });
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                console.log(errorCode + ' Bug. ' + errorMessage);
+            });
+
+    });
+
+</script>
+
+</html>

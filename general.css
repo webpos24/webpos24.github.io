@@ -1,0 +1,43 @@
+html,
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.menu {
+    padding: 10px;
+    background-color: rgb(240, 240, 240);
+    height: calc(100% - 20px * 2);
+    vertical-align: top;
+    box-shadow: 10px 0px 10px rgba(0, 0, 0, 0.308);
+    position: relative;
+    z-index: 1;
+    display: table-cell;
+}
+
+.menuOpt {
+    font-size: 20px;
+    display: none;
+    margin-left: 10px;
+}
+
+.menuChild {
+    padding: 10px;
+}
+
+.menuChild:hover {
+    background-color: rgb(224, 224, 224);
+}
+
+.menuChild:active {
+    background-color: rgb(199, 199, 199);
+}
+
+.menuIcon {
+    width: 32px;
+    display: inline-block;
+    vertical-align: top;
+}
