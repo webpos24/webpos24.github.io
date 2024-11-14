@@ -339,7 +339,7 @@
                 console.log('Data is ended.');
             }
 
-            document.getElementById("statistics").innerHTML += `<div>Total Sales: ${totalSales}</div>`;
+            document.getElementById("statistics").innerHTML += `<div>Total Sales: RM ${totalSales.toFixed(2)}</div>`;
             report();
 
         }, {
@@ -406,7 +406,7 @@
 
             });
 
-            document.getElementById("statistics").innerHTML += `<div>Month Total Sales: ${monthTotalSales}</div>`;
+            document.getElementById("statistics").innerHTML += `<div>Month Total Sales: RM ${monthTotalSales.toFixed(2)}</div>`;
             report();
 
         });
@@ -485,7 +485,7 @@
 
             });
 
-            document.getElementById("statistics").innerHTML += `<div>Year Total Sales: ${yearTotalSales}</div>`;
+            document.getElementById("statistics").innerHTML += `<div>Year Total Sales: RM ${yearTotalSales.toFixed(2)}</div>`;
             report();
 
         });
