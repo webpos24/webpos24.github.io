@@ -310,7 +310,7 @@
 
         var resetList = false;
 
-        salesData = [['Hour', 'TotalPrice'], [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [10, 0], [11, 0], [12, 0], [13, 0], [14, 0], [15, 0], [16, 0], [17, 0], [18, 0], [19, 0], [20, 0], [21, 0], [22, 0], [23, 0]];
+        salesData = [['Hour', 'Total Price'], [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [10, 0], [11, 0], [12, 0], [13, 0], [14, 0], [15, 0], [16, 0], [17, 0], [18, 0], [19, 0], [20, 0], [21, 0], [22, 0], [23, 0]];
 
         //Get list of order
         onValue(query(ref(database, 'staffcode/' + sessionStorage.getItem('staffCode') + '/order/' + sDate)), (snapshot) => {
@@ -360,7 +360,7 @@
 
         var resetList = false;
 
-        salesData = [['Date', 'TotalPrice']];
+        salesData = [['Date', 'Total Price']];
 
         for (let index = 1; index <= (new Date(parseInt(datePart[0]), parseInt(datePart[1]), 0).getDate()); index++) {
             salesData.push([index, 0]);
@@ -424,7 +424,7 @@
 
         var resetList = false;
 
-        salesData = [['Month', 'TotalPrice']];
+        salesData = [['Month', 'Total Price']];
 
         // 12 Months
         for (let index = 1; index <= 12; index++) {
