@@ -127,7 +127,7 @@
 
         }
 
-    }
+    };
 
     //Scroll function
     function advScr(elemId) {
@@ -428,10 +428,10 @@
                 categorySnapshot.forEach(function (childSnapshot) {
 
                     document.getElementById("itemList_" + categorySnapshot.key).innerHTML += `
-                        <div class="item" style="white-space: normal;" onclick="order('${childSnapshot.key}', ${childSnapshot.val()}, '${categorySnapshot.key}');">
+                        <div class="item" style="white-space: normal;" onclick="order('${childSnapshot.key}', ${childSnapshot.val().price}, '${categorySnapshot.key}');">
                             <div style="position: relative; transform: translate(-50%, -50%); top: 50%; left: 50%;">
                                 <div>${childSnapshot.key}</div>
-                                <div>RM ${childSnapshot.val().toFixed(2)}</div>
+                                <div>RM ${childSnapshot.val().price.toFixed(2)}</div>
                             </div>
                         </div>
                     `;

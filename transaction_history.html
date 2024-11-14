@@ -32,7 +32,7 @@
         <div id="menu"></div>
 
         <div id="detail" style="grid-area: header;">
-            <div id="Title" class="detail" style="font-size: 50px;">TRANSACTION</div>
+            <div id="Title" class="detail" style="font-size: 50px;">TRANSACTION HISTORY</div>
             <div class="detail" style="position: absolute; z-index: 3; right: 30px; white-space: nowrap;">
                 <div id="accStatus" style="position: absolute;"></div>
                 <div id="Account" style="z-index: 3; font-size: 20px; position: relative;">[Account]</div>
@@ -79,10 +79,7 @@
 <script>
 
     var loading;
-    var sortType = 'orderID';
-    var currentAt, limitAt, listBottom, lastTop;
     var listTop = '0000001';
-    var sLimit = 10;
 
     //Auto refresh staff status
     var currentdate = new Date();
