@@ -235,7 +235,7 @@
                 document.getElementById("services").innerHTML += `
                 <tr class="serviceBorder">
                     <td class="serviceBorder updateButton" onclick="category.length > 1 ? category.splice(${i}, 1) : document.getElementById('message').innerHTML = 'Minimum data reached.';" style="min-width: 40px; font-family: Arial, sans-serif; color: red;">x</td>
-                    <td class="serviceBorder" contenteditable oninput="category[${i}] = this.innerHTML"
+                    <td class="serviceBorder" contenteditable onfocusout="category[${i}] = this.innerHTML"
                         style="white-space: nowrap; text-align: center; font-size: 20px; min-width: 98px; outline: none;">${categorySnapshot.key}</td>
                     <td colspan="4" style="padding: 0px;">
                         <table id="service_${categorySnapshot.key}" style="border-collapse: collapse; width: 100%; position: relative;">
@@ -252,9 +252,9 @@
                     document.getElementById("service_" + categorySnapshot.key).innerHTML += `
                         <tr class="serviceBorder">
                             <td class="serviceBorder" style="min-width: 40px;">${j + 1}</td>
-                            <td class="serviceBorder" contenteditable oninput="item[${i}][${j}][0] = this.innerHTML"
+                            <td class="serviceBorder" contenteditable onfocusout="item[${i}][${j}][0] = this.innerHTML"
                                 style="white-space: nowrap; text-align: center; font-size: 20px; min-width: 198px; outline: none;">${childSnapshot.key}</td>
-                            <td class="serviceBorder" contenteditable oninput="if (isNaN(this.innerHTML)) {var output = this.innerHTML.split('.'); var last = output.pop(); this.innerHTML = (+(output.join('').replace(/[^0-9]|/g, '') + '.' + last.replace(/[^0-9]/g, ''))).toFixed(2);}; item[${i}][${j}][1] = this.innerHTML;"
+                            <td class="serviceBorder" contenteditable onfocusout="if (isNaN(this.innerHTML)) {var output = this.innerHTML.split('.'); var last = output.pop(); this.innerHTML = (+(output.join('').replace(/[^0-9]|/g, '') + '.' + last.replace(/[^0-9]/g, ''))).toFixed(2);}; item[${i}][${j}][1] = this.innerHTML;"
                                 style="white-space: nowrap; text-align: center; font-size: 20px; min-width: 98px; outline: none;">${childSnapshot.val().price.toFixed(2)}</td>
                             <td class="serviceBorder updateButton" onclick="item[${i}].length > 1 ? item[${i}].splice(${j}, 1) : document.getElementById('message').innerHTML = 'Please remove from category.';" style="min-width: 40px; font-family: Arial, sans-serif; color: red;">x</td>
                         </tr>

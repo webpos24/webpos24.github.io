@@ -203,7 +203,6 @@
                                 <td class="serviceBorder" style="min-width: 40px;"></td>
                                 <td class="serviceBorder" style="width: 198px;">Name</td>
                                 <td class="serviceBorder" style="width: 98px;">Quantity</td>
-                                <td class="serviceBorder" style="min-width: 40px;"></td>
                             </tr>
                         </table>
                     </td>
@@ -216,7 +215,6 @@
                                 <td class="serviceBorder" style="min-width: 40px;">0</td>
                                 <td class="serviceBorder" style="width: 198px;">TEST1</td>
                                 <td class="serviceBorder" style="width: 98px;">10.00</td>
-                                <td class="serviceBorder" style="min-width: 40px;">x</td>
                             </tr>
                         </table>
                     </td>
@@ -236,7 +234,7 @@
                 end = true;
                 document.getElementById("services").innerHTML += `
                 <tr class="serviceBorder">
-                    <td class="serviceBorder" contenteditable oninput="category[${i}] = this.innerHTML"
+                    <td class="serviceBorder"
                         style="white-space: nowrap; text-align: center; font-size: 20px; min-width: 98px; outline: none;">${categorySnapshot.key}</td>
                     <td colspan="4" style="padding: 0px;">
                         <table id="service_${categorySnapshot.key}" style="border-collapse: collapse; width: 100%; position: relative;">
@@ -258,11 +256,10 @@
                     document.getElementById("service_" + categorySnapshot.key).innerHTML += `
                         <tr class="serviceBorder">
                             <td class="serviceBorder" style="min-width: 40px;">${j + 1}</td>
-                            <td class="serviceBorder" contenteditable oninput="item[${i}][${j}][0] = this.innerHTML"
+                            <td class="serviceBorder"
                                 style="white-space: nowrap; text-align: center; font-size: 20px; min-width: 198px; outline: none;">${childSnapshot.key}</td>
-                            <td class="serviceBorder" contenteditable oninput="if (isNaN(this.innerHTML)) {var output = this.innerHTML.split('.'); var last = output.pop(); this.innerHTML = (+(output.join('').replace(/[^0-9]|/g, '') + '.' + last.replace(/[^0-9]/g, ''))).toFixed(2);}; item[${i}][${j}][2] = this.innerHTML;"
+                            <td class="serviceBorder" contenteditable onfocusout="if (isNaN(this.innerHTML)) {var output = this.innerHTML.split('.'); var last = output.pop(); this.innerHTML = (+(output.join('').replace(/[^0-9]|/g, '') + '.' + last.replace(/[^0-9]/g, ''))).toFixed(2);}; item[${i}][${j}][2] = this.innerHTML;"
                                 style="white-space: nowrap; text-align: center; font-size: 20px; min-width: 98px; outline: none;">${childSnapshot.val().quantity}</td>
-                            <td class="serviceBorder updateButton" onclick="item[${i}].length > 1 ? item[${i}].splice(${j}, 1) : document.getElementById('message').innerHTML = 'Please remove from category.';" style="min-width: 40px; font-family: Arial, sans-serif; color: red;">x</td>
                         </tr>
                     `;
 
