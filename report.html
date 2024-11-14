@@ -55,6 +55,8 @@
                     <div id="myChart" style="width: 100vw; max-width: calc(80vw); height: calc(100vh - 100px);"></div>
                 </div>
 
+                <div id="statistics" style="position: absolute; transform: translate(-15%, -50%); top: 50%; right: 0%; width: 15%;"></div>
+
             </div>
 
         </div>
@@ -298,6 +300,10 @@
 
     function getDailySales() {
 
+        //Declare variables for statistics
+        var totalSales = 0;
+        document.getElementById("statistics").innerHTML = "";
+
         //Retrieve input date sorting value
         var datePart = document.getElementById("date").value.split("-");
         var sDate = parseInt(datePart[0]) + "/" + parseInt(datePart[1]) + "/" + parseInt(datePart[2]);
@@ -324,6 +330,7 @@
 
                     if (!childSnapshot.val().refund) {
                         salesData[time + 1][1] += totalPrice;
+                        totalSales += totalPrice;
                     };
 
                 });
@@ -332,6 +339,7 @@
                 console.log('Data is ended.');
             }
 
+            document.getElementById("statistics").innerHTML += `<div>Total Sales: ${totalSales}</div>`;
             report();
 
         }, {
@@ -341,6 +349,10 @@
     };
 
     function getMonthlySales() {
+
+        //Declare variables for statistics
+        var monthTotalSales = 0;
+        document.getElementById("statistics").innerHTML = "";
 
         //Retrieve input date sorting value
         var datePart = document.getElementById("date").value.split("-");
@@ -390,9 +402,11 @@
                 });
 
                 salesData[sDay.key][1] = daySales;
+                monthTotalSales += daySales;
 
             });
 
+            document.getElementById("statistics").innerHTML += `<div>Month Total Sales: ${monthTotalSales}</div>`;
             report();
 
         });
@@ -400,6 +414,10 @@
     };
 
     function getAnnualSales() {
+
+        //Declare variables for statistics
+        var yearTotalSales = 0;
+        document.getElementById("statistics").innerHTML = "";
 
         //Retrieve input year sorting value
         var sYear = document.getElementById("date").value;
@@ -463,9 +481,11 @@
                 });
 
                 salesData[sMonth.key][1] = monthSales;
+                yearTotalSales += monthSales;
 
             });
 
+            document.getElementById("statistics").innerHTML += `<div>Year Total Sales: ${yearTotalSales}</div>`;
             report();
 
         });
