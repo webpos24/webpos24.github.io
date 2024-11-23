@@ -79,9 +79,11 @@
                     <span class="label">+</span>Add
                 </label>
             </div>
-            <table id="services"
-                style="border-collapse: collapse; position: relative; left: 50%; transform: translate(-50%, 0%); user-select: none;">
-            </table>
+            <div style="overflow-y: scroll; height: 90%;">
+                <table id="services"
+                    style="border-collapse: collapse; position: relative; left: 50%; transform: translate(-50%, 0%); user-select: none;">
+                </table>
+            </div>
         </div>
 
     </div>
@@ -188,13 +190,13 @@
 
             //Initialise table
             document.getElementById("services").innerHTML = `
-                <tr class="serviceBorder">
-                    <td class="serviceBorder" style="min-width: 40px; font-family: Arial, sans-serif;"></td>
-                    <td class="serviceBorder" style="width: 100px;">Category</td>
-                    <td class="serviceBorder" style="min-width: 40px;"></td>
-                    <td class="serviceBorder" style="width: 198px;">Name</td>
-                    <td class="serviceBorder" style="width: 98px;">Price</td>
-                    <td class="serviceBorder" style="min-width: 40px;"></td>
+                <tr class="serviceBorder" style="position: sticky; top: 0; box-shadow: 0 0px 0.5px 1px #dadada; background-color: white; user-select: none;">
+                    <th class="serviceBorder" style="min-width: 40px; font-family: Arial, sans-serif;"></td>
+                    <th class="serviceBorder" style="width: 100px;">Category</td>
+                    <th class="serviceBorder" style="min-width: 40px;"></td>
+                    <th class="serviceBorder" style="width: 198px;">Name</td>
+                    <th class="serviceBorder" style="width: 98px;">Price</td>
+                    <th class="serviceBorder" style="min-width: 40px;"></td>
                 <tr>
                 <tr class="serviceBorder" style="color: lightgray;">
                     <td class="serviceBorder" style="min-width: 40px; font-family: Arial, sans-serif;">x</td>
@@ -303,7 +305,7 @@
                 document.getElementById("service_" + categorySnapshot.key).innerHTML += `
                     <tr class="serviceBorder">
                         <td colspan="4" style="padding: 0px;">
-                            <div id="addItem_${categorySnapshot.key}" class="updateButton">+</div>
+                            <div id="addItem_${categorySnapshot.key}" class="updateButton" style="color: gray; padding: 5px;">+ ITEM</div>
                         </td>
                     </tr>
                 `;
@@ -330,7 +332,7 @@
             document.getElementById("services").innerHTML += `
                 <tr class="serviceBorder">
                     <td colspan="6" style="padding: 0px;">
-                        <div id="addCategory" class="updateButton">+</div>
+                        <div id="addCategory" class="updateButton" style="color: gray; padding: 5px;">+ CATEGORY</div>
                     </td>
                 </tr>
             `;

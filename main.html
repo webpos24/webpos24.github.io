@@ -10,7 +10,6 @@
             font-family: Arial, Helvetica, sans-serif;
             overflow: hidden;
             margin: 10px;
-            height: 123px;
         }
 
         .item {
@@ -57,14 +56,15 @@
     </div>
 
     <div class="body">
-        
+
         <div id="menu"></div>
 
         <div id="detail" style="grid-area: header;">
             <div id="Title" class="detail" style="font-size: 50px;">HOME</div>
             <div class="detail" style="position: absolute; z-index: 3; right: 30px; white-space: nowrap;">
                 <div id="accStatus" style="position: absolute;"></div>
-                <div id="Account" style="z-index: 3; font-size: 20px; position: relative; background-color: white;">[Account]</div>
+                <div id="Account" style="z-index: 3; font-size: 20px; position: relative; background-color: white;">
+                    [Account]</div>
             </div>
         </div>
 
@@ -128,15 +128,6 @@
         }
 
     };
-
-    //Scroll function
-    function advScr(elemId) {
-        var tar = document.getElementById("itemList_" + elemId);
-        tar.scrollLeft == 0 ? document.getElementById("left_" + elemId).style.display = "none" : document.getElementById("left_" + elemId).style.display = "block";
-        tar.scrollLeft + tar.clientWidth == tar.scrollWidth ? document.getElementById("right_" + elemId).style.display = "none" : document.getElementById("right_" + elemId).style.display = "block";
-
-        //console.log("Hi " + "itemList_" + elemId + " " + document.getElementById("itemList_" + elemId).scrollLeft);
-    }
 
     //Retrieve item from array using index
     function order(name, price, category) {
@@ -401,47 +392,38 @@
 
             //Find services categories and loop
             var end = false;
+
             snapshot.forEach(function (categorySnapshot) {
 
-                //initialise category list and item list
-                //Left and Right arrow
-                document.getElementById("categoryList").innerHTML += `
-                    <div class="category">
-                        <div id="right_${categorySnapshot.key}" style="z-index: 1; display: none; border: 1px solid black; border-radius: 5px; background-color: white; position: absolute; right: 30px; padding: 20px 10px 20px 2px; transform: translate(0%, 78%);" onclick="document.getElementById('itemList_' + '${categorySnapshot.key}').scrollBy(170, 0);">
-                            <div style="border-style: solid solid none none; height: 15px; width: 15px; border-width: 2px; transform: rotate(45deg);">
-                            </div>
-                        </div>
-                        <div id="left_${categorySnapshot.key}" style="z-index: 1; border: 1px solid black; border-radius: 5px; background-color: white; display: none; position: absolute; left: 30px; padding: 20px 2px 20px 10px; transform: translate(0%, 78%);" onclick="document.getElementById('itemList_' + '${categorySnapshot.key}').scrollBy(-170, 0);">
-                            <div style="border-style: solid solid none none; height: 15px; width: 15px; border-width: 2px; transform: rotate(225deg);">
-                            </div>
-                        </div>
-                        <div style="position: relative; left: 10px;">${categorySnapshot.key}</div>
-                        <div id="itemList_${categorySnapshot.key}" onscroll="advScr('${categorySnapshot.key}');" style="overflow: auto; font-size: 0px; white-space: nowrap;">
-                        </div>
-                    </div>
-                `;
+                if (categorySnapshot.val().items != "" && categorySnapshot.val().items != null) {
 
-                // Category is available
-                end = true;
-
-                //Set item list in category
-                categorySnapshot.forEach(function (childSnapshot) {
-
-                    document.getElementById("itemList_" + categorySnapshot.key).innerHTML += `
-                        <div class="item" style="white-space: normal;" onclick="order('${childSnapshot.key}', ${childSnapshot.val().price}, '${categorySnapshot.key}');">
-                            <div style="position: relative; transform: translate(-50%, -50%); top: 50%; left: 50%;">
-                                <div>${childSnapshot.key}</div>
-                                <div>RM ${childSnapshot.val().price.toFixed(2)}</div>
+                    //initialise category list and item list
+                    //Left and Right arrow
+                    document.getElementById("categoryList").innerHTML += `
+                        <div class="category">
+                            <div style="position: relative; left: 10px;">${categorySnapshot.val().name}</div>
+                            <div id="itemList_${categorySnapshot.key}" style="overflow: auto; font-size: 0px;">
                             </div>
                         </div>
                     `;
 
-                })
+                    // Category is available
+                    end = true;
 
-                //Detect if elements' total width is out of size
-                if (categorySnapshot.size * 170 > document.getElementById("itemList_" + categorySnapshot.key).clientWidth) {
-                    document.getElementById("right_" + categorySnapshot.key).style.display = "block";
-                }
+                    //Set item list in category
+                    categorySnapshot.child("items").forEach(function (childSnapshot) {
+
+                        document.getElementById("itemList_" + categorySnapshot.key).innerHTML += `
+                            <div class="item" style="white-space: normal;" onclick="order('${childSnapshot.val().name}', ${childSnapshot.val().price}, '${categorySnapshot.val().name}');">
+                                <div style="position: relative; transform: translate(-50%, -50%); top: 50%; left: 50%;">
+                                    <div>${childSnapshot.val().name}</div>
+                                    <div>RM ${childSnapshot.val().price.toFixed(2)}</div>
+                                </div>
+                            </div>
+                        `;
+
+                    })
+                };
 
             });
             //If services are empty
