@@ -20,18 +20,35 @@
         }
 
         .pin {
-            padding-left: 22px;
+            margin-right: -22px;
             font-size: 50px;
             text-align: left;
             width: 200px;
-            border-width: 0 0 2px;
+            border-width: 0px;
             letter-spacing: 22px;
             font-variant-numeric: tabular-nums;
         }
 
         .pin:focus {
-            border-width: 0 0 3px;
             outline: 0;
+        }
+
+        .pin_line {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            border: 1px solid gray;
+            margin: -1px;
+            width: 20%;
+        }
+
+        .pin_box {
+            width: 200px;
+            height: 100px;
+            position: relative;
+        }
+
+        .pin_box:focus-within>.pin_line {
+            border: 1px solid black;
         }
     </style>
 </head>
@@ -43,8 +60,13 @@
     <form id="staffPin" class="alignCenter bold">
         <label>Staff PIN</label>
         <hr>
-        <input id="pin" type="text" class="pin" minlength="4" maxlength="4" pattern="[0-9]{1}">
-        <br>
+        <div class="pin_box">
+            <input id="pin" type="text" class="pin" minlength="4" maxlength="4" pattern="[0-9]{1}" autocomplete="off">
+            <hr class="pin_line" style="left: 11.5%;">
+            <hr class="pin_line" style="left: 37.5%;">
+            <hr class="pin_line" style="left: 62.5%;">
+            <hr class="pin_line" style="left: 88.5%;">
+        </div>
         <button id="loginStaff" type="button" style="font-size: 20px; padding: 3px 10px 3px 10px;">
             Log In</button>
     </form>
@@ -94,7 +116,7 @@
     // https://firebase.google.com/docs/web/setup#available-libraries
 
     // Your web app's Firebase configuration
-        const firebaseConfig = {
+    const firebaseConfig = {
         apiKey: "AIzaSyDmYAF5VJ0RntbtrfJ_4Sk9syHYGKev4nw",
         authDomain: "webpos24-e0eb3.firebaseapp.com",
         databaseURL: "https://webpos24-e0eb3-default-rtdb.asia-southeast1.firebasedatabase.app",

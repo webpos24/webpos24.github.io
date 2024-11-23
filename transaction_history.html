@@ -13,10 +13,14 @@
             height: 100%;
         }
 
-        .orderBorder {
+        .orderBorder,
+        .orderBorder>tr,
+        .orderBorder>th,
+        .orderBorder>td {
             border: 1px solid #dadada;
             font-size: 20px;
             padding: 5px 7px 5px 7px;
+            text-align: center;
         }
     </style>
 </head>
@@ -35,7 +39,7 @@
             <div id="Title" class="detail" style="font-size: 50px;">TRANSACTION HISTORY</div>
             <div class="detail" style="position: absolute; z-index: 3; right: 30px; white-space: nowrap;">
                 <div id="accStatus" style="position: absolute;"></div>
-                <div id="Account" style="z-index: 3; font-size: 20px; position: relative;">[Account]</div>
+                <div id="Account" style="z-index: 3; font-size: 20px; position: relative; background-color: white;">[Account]</div>
             </div>
         </div>
 
@@ -43,26 +47,17 @@
 
             <div style="padding: 20px; height: calc(100% - 40px);">
                 <div style="margin: 10px; margin-bottom: 30px; text-align: right;">
+                    <label style="padding-right: 7%;">
+                        <span
+                            style="display: inline-block; vertical-align: text-bottom; background-color: lightgray; height: 22px; width: 22px;"></span>
+                        Refund
+                    </label>
                     <label>Date</label>
                     <input type="date" id="date" style="height: 18px; vertical-align: top;">
                 </div>
 
-                <div style="overflow-y: scroll;">
-                    <table style="border-collapse: collapse; width: 100%; position: relative;">
-                        <tr class="orderBorder">
-                            <td class="orderBorder" id="tOrderID" style="width: 10%; min-width: 78px; user-select: none;">Order ID</td>
-                            <td class="orderBorder" id="tDate" style="width: 10%; min-width: 97px; user-select: none;">Date</td>
-                            <td class="orderBorder" id="tTime" style="width: 10%; min-width: 67px; user-select: none;">Time</td>
-                            <td class="orderBorder" id="tCart" style="width: 56%; user-select: none;">Cart</td>
-                            <td class="orderBorder" id="tTotalPrice" style="width: 10%; user-select: none;">Total (RM)
-                            </td>
-                            <td class="orderBorder" style="width: 4%;"></td>
-                        <tr>
-                    </table>
-                </div>
-
-                <div style="overflow-y: scroll; overflow-x: hidden; height: 80%;">
-                    <table id="listOrder" style="border-collapse: collapse; width: 100%; position: relative;">
+                <div style="overflow-x: hidden; height: 80%;">
+                    <table id="listOrder" style="border-collapse: collapse; height: 100%; width: 100%; position: relative;">
                     </table>
                 </div>
 
@@ -211,7 +206,16 @@
 
                 if (resetList == false) {
                     //Reset list
-                    document.getElementById('listOrder').innerHTML = '';
+                    document.getElementById('listOrder').innerHTML = `
+                        <tr class="orderBorder" style="position: sticky; top: 0; box-shadow: 0 0px 0.5px 1px #dadada; background-color: white; user-select: none;">
+                            <th style="width: 10%;">Order ID</th>
+                            <th style="width: 10%;">Date</th>
+                            <th style="width: 10%;">Time</th>
+                            <th style="width: 56%;">Cart</th>
+                            <th style="width: 10%;">Total (RM)</th>
+                            <th style="width: 4%;"></th>
+                        <tr>
+                    `;
                     resetList = true;
                 }
 
@@ -227,7 +231,7 @@
 
                     //Transform to readable order cart
                     for (let index = 0; index < orderCart.length; index++) {
-                        cartList += `${index + 1}. [${orderCart[index][2]}] ${orderCart[index][0]} - RM${orderCart[index][1]} <br>`;
+                        cartList += `${index + 1}. [${orderCart[index][2]}] ${orderCart[index][0]} - RM${orderCart[index][1].toFixed(2)} <br>`;
                     };
 
                     //Detect refunded transaction
@@ -280,12 +284,12 @@
                     //Update List function, private functon
                     document.getElementById('listOrder').innerHTML += `
                         <tr class="orderBorder" style="${refund}">
-                            <td class="orderBorder" style="width: 10%;">${childSnapshot.key}</td>
-                            <td class="orderBorder" style="width: 10%;">${childSnapshot.ref._path.pieces_[3] + '/' + childSnapshot.ref._path.pieces_[4] + '/' + childSnapshot.ref._path.pieces_[5]}</td>
-                            <td class="orderBorder" style="width: 10%;">${childSnapshot.val().time}</td>
-                            <td class="orderBorder" style="width: 56%;">${cartList}</td>
-                            <td class="orderBorder" style="width: 10%;">${childSnapshot.val().totalPrice.toFixed(2)}</td>
-                            <td class="orderBorder" id="refund_${childSnapshot.key}" style="width: 4%; text-align: center;">${refundButton}</td>
+                            <td>${childSnapshot.key}</td>
+                            <td>${childSnapshot.ref._path.pieces_[3] + '/' + childSnapshot.ref._path.pieces_[4] + '/' + childSnapshot.ref._path.pieces_[5]}</td>
+                            <td>${childSnapshot.val().time}</td>
+                            <td>${cartList}</td>
+                            <td>${childSnapshot.val().totalPrice.toFixed(2)}</td>
+                            <td id="refund_${childSnapshot.key}">${refundButton}</td>
                         <tr>
                     `;
                     index++;
@@ -295,7 +299,7 @@
             } else {
                 console.log('Data is ended.');
                 document.getElementById('listOrder').innerHTML = `
-                    <div style="text-align: center;">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
                         Empty Record.
                     </div>
                 `;
