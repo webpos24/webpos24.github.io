@@ -2,9 +2,17 @@
 
 <head>
     <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
-    <title>WebPOS - Manage Inventory</title>
+    <title>WebPOS - Modify Inventory</title>
     <link rel="stylesheet" href="general.css">
     <style>
+        .content {
+            font-size: 20px;
+            font-family: Arial, Helvetica, sans-serif;
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+        }
+
         .serviceBorder {
             border: 1px solid #dadada;
             font-size: 20px;
@@ -12,8 +20,26 @@
             text-align: center;
         }
 
+        .serviceBorder:nth-child(2) {
+            width: 50px;
+        }
+
+        ;
+
         .updateButton:active {
             background-color: rgb(240, 240, 240);
+        }
+
+        .label {
+            display: inline-block;
+            vertical-align: text-bottom;
+            border: 1px solid lightgray;
+            border-radius: 22px;
+            text-align: center;
+            height: 22px;
+            width: 22px;
+            margin-left: 5%;
+            margin-right: 10px;
         }
     </style>
 </head>
@@ -29,7 +55,7 @@
         <div id="menu"></div>
 
         <div id="detail" style="grid-area: header;">
-            <div id="Title" class="detail" style="font-size: 50px;">MANAGE INVENTORY</div>
+            <div id="Title" class="detail" style="font-size: 50px;">MODIFY INVENTORY</div>
             <div class="detail" style="position: absolute; z-index: 3; right: 30px; white-space: nowrap;">
                 <div id="accStatus" style="position: absolute;"></div>
                 <div id="Account" style="z-index: 3; font-size: 20px; position: relative; background-color: white;">
@@ -37,9 +63,15 @@
             </div>
         </div>
 
-        <div id="main" style="grid-area: main; overflow: auto;">
+        <div id="main" class="content" style="grid-area: main;">
+            <div style="margin: 10px; margin-bottom: 30px; text-align: right;">
+                <label style="padding-right: 7%;">
+                    <span class="label" style="color: red;">x</span>Remove
+                    <span class="label">+</span>Add
+                </label>
+            </div>
             <table id="services"
-                style="border-collapse: collapse; position: relative; top: 40%; left: 50%; transform: translate(-50%, -50%); user-select: none;">
+                style="border-collapse: collapse; position: relative; left: 50%; transform: translate(-50%, 0%); user-select: none;">
             </table>
             <br>
             <br>
@@ -96,8 +128,8 @@
     };
 
     //Declare and set variable places
-    var category = new Array();
-    var item = new Array();
+    var list = new Array();
+
     // Initialize quickMap for category and item
     var quickMap;
 
@@ -106,30 +138,29 @@
         quickMap = '{';
 
         //quickMap for recording variable
-        for (let i = 0; i < category.length; i++) {
-            if (category[i] == "") {
-                category[i] = "blank";
+        for (let i = 0; i < list.length; i++) {
+            //If category name is empty, then set it to blank
+            if (list[i].category == "") {
+                list[i].category = "blank";
             }
-            quickMap += '"' + category[i] + '":{';
-            for (let j = 0; j < item[i].length; j++) {
-                if (item[i][j][0] == "") {
-                    item[i][j][0] = "blank";
-                }
-                if (item[i][j][1] == "") {
-                    item[i][j][1] = 0;
-                }
-                if (item[i][j][2] == undefined || item[i][j][1] == "-") {
-                    item[i][j][2] = "\"-\"";
-                }
-                // quickMap += '"' + item[i][j][0] + '":' + item[i][j][1] + ',';
-                console.log(item[i][j][2]);
+            quickMap += '"' + list[i].category + '":{';
 
-                quickMap += '"' + item[i][j][0] + '":{"price":' + item[i][j][1] + ',"quantity":' + item[i][j][2] + '},';
+            for (let j = 0; j < list[i].items.length; j++) {
+                if (list[i].items[j].name == "") {
+                    list[i].items[j].name = "blank";
+                }
+                if (list[i].items[j].price == "") {
+                    list[i].items[j].price = 0;
+                }
+                if (list[i].items[j].quantity == undefined || list[i].items[j].quantity == "-") {
+                    list[i].items[j].quantity = "\"-\"";
+                }
+                quickMap += '"' + list[i].items[j].name + '":{"price":' + list[i].items[j].price + ',"quantity":' + list[i].items[j].quantity + '},';
             }
+
+
             quickMap = quickMap.substring(0, quickMap.length - 1) + '},';
         }
-
-        console.log(quickMap);
 
         quickMap = JSON.parse(quickMap.substring(0, quickMap.length - 1) + "}");
 
@@ -143,7 +174,7 @@
 
     //createUserWithEmailAndPassword
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-    import { getDatabase, set, ref, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+    import { getDatabase, set, ref, update, onValue, push } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
     // TODO: Add SDKs for Firebase products that you want to use
     // https://firebase.google.com/docs/web/setup#available-libraries
@@ -189,34 +220,25 @@
         if (snapshot.exists()) {
 
             // Reset array
-            category = new Array();
-            item = new Array();
+            list = new Array();
 
             //Initialise table
             document.getElementById("services").innerHTML = `
                 <tr class="serviceBorder">
+                    <td class="serviceBorder" style="min-width: 40px; font-family: Arial, sans-serif;"></td>
                     <td class="serviceBorder" style="width: 100px;">Category</td>
-                    <td colspan="4" style="padding: 0px;">
-                        <table style="border-collapse: collapse; margin: -1px;">
-                            <tr class="serviceBorder">
-                                <td class="serviceBorder" style="min-width: 40px;"></td>
-                                <td class="serviceBorder" style="width: 198px;">Name</td>
-                                <td class="serviceBorder" style="width: 98px;">Quantity</td>
-                            </tr>
-                        </table>
-                    </td>
+                    <td class="serviceBorder" style="min-width: 40px;"></td>
+                    <td class="serviceBorder" style="width: 198px;">Name</td>
+                    <td class="serviceBorder" style="width: 98px;">Price</td>
+                    <td class="serviceBorder" style="min-width: 40px;"></td>
                 <tr>
                 <tr class="serviceBorder" style="color: lightgray;">
+                    <td class="serviceBorder" style="min-width: 40px; font-family: Arial, sans-serif;">x</td>
                     <td class="serviceBorder" style="width: 100px;">Example</td>
-                    <td colspan="4" style="padding: 0px;">
-                        <table style="border-collapse: collapse; margin: -1px;">
-                            <tr class="serviceBorder">
-                                <td class="serviceBorder" style="min-width: 40px;">0</td>
-                                <td class="serviceBorder" style="width: 198px;">TEST1</td>
-                                <td class="serviceBorder" style="width: 98px;">10.00</td>
-                            </tr>
-                        </table>
-                    </td>
+                    <td class="serviceBorder" style="min-width: 40px;">0</td>
+                    <td class="serviceBorder" style="width: 198px;">TEST1</td>
+                    <td class="serviceBorder" style="width: 98px;">10.00</td>
+                    <td class="serviceBorder" style="min-width: 40px;">x</td>
                 <tr>
             `
 
@@ -230,12 +252,27 @@
 
                 var newItem = new Array();
 
+                //push the category into list
+                list.push({
+                    category: categorySnapshot.key,
+                    items: []
+                });
+
                 end = true;
                 document.getElementById("services").innerHTML += `
                 <tr class="serviceBorder">
-                    <td class="serviceBorder"
+                    <td class="serviceBorder updateButton" onclick="
+
+                        //Check if it is the last category
+                        list.length > 1 ? list.splice(${i}, 1) : document.getElementById('message').innerHTML = 'Minimum data reached.';
+
+                    " style="min-width: 40px; color: red;">x</td>
+                    <td class="serviceBorder" contenteditable onfocusout="
+                        //Edit category name
+                        list[${i}].category = this.innerHTML
+                    "
                         style="white-space: nowrap; text-align: center; font-size: 20px; min-width: 98px; outline: none;">${categorySnapshot.key}</td>
-                    <td colspan="4" style="padding: 0px;">
+                    <td colspan="4" style="padding: 0;">
                         <table id="service_${categorySnapshot.key}" style="border-collapse: collapse; margin: -1px;">
                         </table>
                     </td>
@@ -246,38 +283,80 @@
                 //ITEM - childSnapshot.key (price - childSnapshot.val())
                 categorySnapshot.forEach(function (childSnapshot) {
 
+                    //Set to Price at the third <td>
+                    document.getElementById("service_" + categorySnapshot.key).innerHTML += `
+                        <tr class="serviceBorder">
+                            <td class="serviceBorder" style="white-space: normal; overflow-wrap: break-word; max-width: 40px; min-width: 40px;">${j + 1}</td>
+                            <td class="serviceBorder" contenteditable onfocusout="
+
+                                //Edit item name
+                                list[${i}].items[${j}].name = this.innerHTML;
+
+                            "
+                                style="white-space: nowrap; text-align: center; font-size: 20px; white-space: normal; overflow-wrap: break-word; max-width: 40px; min-width: 198px; outline: none;">${childSnapshot.key}</td>
+                            <td class="serviceBorder" contenteditable onfocusout="
+
+                                //Edit item price
+                                if (isNaN(this.innerHTML)) {
+                                    var output = this.innerHTML.split('.');
+                                    var last = output.pop(); this.innerHTML = (+(output.join('').replace(/[^0-9]|/g, '') + '.' + last.replace(/[^0-9]/g, ''))).toFixed(2);
+                                };
+                                list[${i}].items[${j}].price = this.innerHTML;
+
+                            "
+                                style="white-space: nowrap; text-align: center; font-size: 20px; white-space: normal; overflow-wrap: break-word; max-width: 40px; min-width: 98px; outline: none;">${childSnapshot.val().price.toFixed(2)}</td>
+                            <td class="serviceBorder updateButton" onclick="
+                                //Check if the item in category is the last
+                                list[${i}].items.length > 1 ? list[${i}].items.splice(${j}, 1) : document.getElementById('message').innerHTML = 'Please remove from category.';
+
+                            " style="min-width: 40px; color: red;">x</td>
+                        </tr>
+                    `;
+
                     var quantity = childSnapshot.val().quantity;
                     if (quantity == undefined || quantity == "-") {
                         quantity = "\"-\"";
                     };
 
-                    //Set to Quantity at the third <td>
-                    document.getElementById("service_" + categorySnapshot.key).innerHTML += `
-                        <tr class="serviceBorder">
-                            <td class="serviceBorder" style="min-width: 40px;">${j + 1}</td>
-                            <td class="serviceBorder"
-                                style="white-space: nowrap; text-align: center; font-size: 20px; min-width: 198px; outline: none;">${childSnapshot.key}</td>
-                            <td class="serviceBorder" contenteditable onfocusout="if (isNaN(this.innerHTML)) {var output = this.innerHTML.split('.'); var last = output.pop(); this.innerHTML = (+(output.join('').replace(/[^0-9]|/g, '') + '.' + last.replace(/[^0-9]/g, ''))).toFixed(2);}; item[${i}][${j}][2] = this.innerHTML;"
-                                style="white-space: nowrap; text-align: center; font-size: 20px; min-width: 98px; outline: none;">${childSnapshot.val().quantity}</td>
-                        </tr>
-                    `;
-
-                    newItem.push([childSnapshot.key, childSnapshot.val().price, quantity]);
+                    list[i].items.push({ name: childSnapshot.key, price: childSnapshot.val().price, quantity: quantity });
 
                     j++;
                 });
 
+                //Click to append item
+                document.getElementById("service_" + categorySnapshot.key).innerHTML += `
+                    <tr class="serviceBorder">
+                        <td colspan="4" style="padding: 0px;">
+                            <div class="updateButton" onclick="
 
-                item.push(newItem);
+                                //Add new item
+                                list[${i}].items.push({'name': '*NewItem ' + (list[${i}].items.length + 1) + '*', 'price': 0, 'quantity': '-'});
 
-                category.push(categorySnapshot.key);
+                            ">+</div>
+                        </td>
+                    </tr>
+                `
 
                 i++;
 
             });
 
-            console.log(category);
-            console.log(item);
+            //Click to append category
+            document.getElementById("services").innerHTML += `
+                <tr class="serviceBorder">
+                    <td colspan="6" style="padding: 0px;">
+                        <div id="addCategory" class="updateButton" onclick="
+
+                            //Add new category
+                            list.push({
+                                category: '*NewCat ' + (list.length + 1) + '*',
+                                items: [{'name': '*NewItem 1*', 'price': 0, 'quantity': '-'}]
+                            });
+
+                        ">+</div>
+                    </td>
+                </tr>
+            `;
 
             if (end == false) {
                 console.log("services are empty");
@@ -299,13 +378,21 @@
 
             })
 
-        }
+        };
+
+        // Add new category
+        addCategory.addEventListener('click', (e) => {
+            push(ref(database, 'services/categories'), {
+                name: "New Category",
+                item: {}
+            });
+        });
 
     });
 
+
     // Change data when typing
     services.addEventListener('focusout', (e) => {
-
 
         modifyMap();
 
