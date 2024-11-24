@@ -64,10 +64,10 @@
         <div id="menu"></div>
 
         <div id="detail" style="grid-area: header;">
-            <div id="Title" class="detail" style="font-size: 50px;">MODIFY INVENTORY</div>
+            <div id="Title" class="detail" style="font-size: min(8vw, 50px);">MODIFY INVENTORY</div>
             <div class="detail" style="position: absolute; z-index: 3; right: 30px; white-space: nowrap;">
                 <div id="accStatus" style="position: absolute;"></div>
-                <div id="Account" style="z-index: 3; font-size: 20px; position: relative; background-color: white;">
+                <div id="Account" style="z-index: 3; font-size: min(4vw, 20px); position: relative; background-color: white;">
                     [Account]</div>
             </div>
         </div>
@@ -79,7 +79,7 @@
                     <span class="label">+</span>Add
                 </label>
             </div>
-            <div style="overflow-y: scroll; height: 90%;">
+            <div id="scroll" style="overflow-y: scroll; height: 80%;">
                 <table id="services"
                     style="border-collapse: collapse; position: relative; left: 50%; transform: translate(-50%, 0%); user-select: none;">
                 </table>
@@ -344,6 +344,10 @@
             push(ref(database, 'services/categories'), {
                 name: "New Category",
                 items: ""
+            });
+            document.getElementById("scroll").scrollTo({
+                top: document.getElementById("scroll").scrollHeight,
+                behavior: "smooth"
             });
         });
 
