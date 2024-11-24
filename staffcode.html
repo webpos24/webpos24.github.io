@@ -3,6 +3,7 @@
 <head>
     <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
     <title>WebPOS - Staff Code</title>
+    <link rel="icon" href="png/logo.png">
     <style>
         .alignCenter {
             position: absolute;
@@ -39,6 +40,7 @@
             border: 1px solid gray;
             margin: -1px;
             width: 20%;
+            transition: all 0.2s linear;
         }
 
         .pin_box {
@@ -49,6 +51,12 @@
 
         .pin_box:focus-within>.pin_line {
             border: 1px solid black;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
     </style>
 </head>
@@ -61,7 +69,7 @@
         <label>Staff PIN</label>
         <hr>
         <div class="pin_box">
-            <input id="pin" type="text" class="pin" minlength="4" maxlength="4" pattern="[0-9]{1}" autocomplete="off">
+            <input id="pin" type="number" class="pin" minlength="4" maxlength="4" pattern="[0-9]{1}" autocomplete="off">
             <hr class="pin_line" style="left: 11.5%;">
             <hr class="pin_line" style="left: 37.5%;">
             <hr class="pin_line" style="left: 62.5%;">

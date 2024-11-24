@@ -3,6 +3,7 @@
 <head>
     <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
     <title>WebPOS - Sales Report</title>
+    <link rel="icon" href="png/logo.png">
     <link rel="stylesheet" href="general.css">
     <style>
         .content {
@@ -11,6 +12,28 @@
             overflow: hidden;
             position: relative;
             height: 100%;
+        }
+
+        .switchButton {
+            height: 32px;
+            width: 130px;
+            vertical-align: middle;
+            margin-right: 20px;
+            border: 0;
+            border-radius: 5px;
+            background-color: rgb(230, 230, 230);
+            font-size: 20px;
+            transition: all 0.2s linear;
+        }
+
+        .switchButton:active {
+            background-color: lightgray;
+        }
+
+        .switchActive {
+            background-color: rgb(53, 53, 53);
+            color: white;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -29,7 +52,9 @@
             <div id="Title" class="detail" style="font-size: min(8vw, 50px);">SALES REPORT</div>
             <div class="detail" style="position: absolute; z-index: 3; right: 30px; white-space: nowrap;">
                 <div id="accStatus" style="position: absolute;"></div>
-                <div id="Account" style="z-index: 3; font-size: min(4vw, 20px); position: relative; background-color: white;">[Account]</div>
+                <div id="Account"
+                    style="z-index: 3; font-size: min(4vw, 20px); position: relative; background-color: white;">
+                    [Account]</div>
             </div>
         </div>
 
@@ -38,24 +63,23 @@
             <div style="padding: 20px; height: calc(100% - 40px);">
                 <div
                     style="position: absolute; z-index: 1; right: 0%; margin: 10px; margin-bottom: 30px; text-align: right;">
-                    <button type="button" id="daily"
-                        style="height: 22px; width: 100px; vertical-align: middle; margin-right: 20px;"
-                        onclick="reportType = 'daily';">Daily</button>
-                    <button type="button" id="monthly"
-                        style="height: 22px; width: 100px; vertical-align: middle; margin-right: 20px;"
-                        onclick="reportType = 'monthly';">Monthly</button>
-                    <button type="button" id="annual"
-                        style="height: 22px; width: 100px; vertical-align: middle; margin-right: 50px;"
-                        onclick="reportType = 'annual';">Annual</button>
-                    <label>Date</label>
-                    <input type="date" id="date" style="height: 18px; width: 150px; vertical-align: top;">
+                    <button type="button" id="daily" class="switchButton" onclick="reportType = 'daily';">DAILY</button>
+                    <button type="button" id="monthly" class="switchButton"
+                        onclick="reportType = 'monthly';">MONTHLY</button>
+                    <button type="button" id="annual" class="switchButton" style="margin-right: 50px;"
+                        onclick="reportType = 'annual';">ANNUAL</button>
+                    <label style="vertical-align: middle;">Date</label>
+                    <input type="date" id="date"
+                        style="height: 28px; width: 160px; vertical-align: top; padding: 0; text-align: center; font-size: 16px;">
                 </div>
 
                 <div style="position: absolute; transform: translate(-50%, -50%); top: 50%; left: 50%;">
                     <div id="myChart" style="width: 100vw; max-width: calc(80vw); height: calc(100vh - 100px);"></div>
                 </div>
 
-                <div id="statistics" style="position: absolute; transform: translate(-15%, -50%); top: 50%; right: 0%; width: 15%;"></div>
+                <div id="statistics"
+                    style="position: absolute; transform: translate(-15%, -50%); top: 50%; right: 0%; width: 15%;">
+                </div>
 
             </div>
 
@@ -214,6 +238,11 @@
     //Trigger chart changing for different types
     //Daily sales
     document.getElementById("daily").addEventListener("click", () => {
+        //Set button style when active
+        document.getElementById("daily").className = "switchButton switchActive";
+        document.getElementById("monthly").className = "switchButton";
+        document.getElementById("annual").className = "switchButton";
+
         document.getElementById("date").type = "date";
         //assign default year, month and day
         document.getElementById("date").value = date.replaceAll('/', '-');
@@ -222,6 +251,11 @@
 
     //Monthly sales
     document.getElementById("monthly").addEventListener("click", () => {
+        //Set button style when active
+        document.getElementById("daily").className = "switchButton";
+        document.getElementById("monthly").className = "switchButton switchActive";
+        document.getElementById("annual").className = "switchButton";
+
         document.getElementById("date").type = "month";
         //assign default year, month and day
         document.getElementById("date").value = date.replaceAll('/', '-').slice(0, 7);
@@ -230,6 +264,11 @@
 
     //Annual sales
     document.getElementById("annual").addEventListener("click", () => {
+        //Set button style when active
+        document.getElementById("daily").className = "switchButton";
+        document.getElementById("monthly").className = "switchButton";
+        document.getElementById("annual").className = "switchButton switchActive";
+
         document.getElementById("date").type = "number";
         document.getElementById("date").max = "9999";
         document.getElementById("date").min = "1000";
@@ -302,6 +341,7 @@
 
         //Declare variables for statistics
         var totalSales = 0;
+        var preTotalSales = 0;
         document.getElementById("statistics").innerHTML = "";
 
         //Retrieve input date sorting value
@@ -339,7 +379,8 @@
                 console.log('Data is ended.');
             }
 
-            document.getElementById("statistics").innerHTML += `<div>Total Sales: RM ${totalSales.toFixed(2)}</div>`;
+            // Update statistics
+            document.getElementById("statistics").innerHTML += `<div>Total Sales:<br>RM ${totalSales.toFixed(2)}</div>`;
             report();
 
         }, {
@@ -406,7 +447,7 @@
 
             });
 
-            document.getElementById("statistics").innerHTML += `<div>Month Total Sales: RM ${monthTotalSales.toFixed(2)}</div>`;
+            document.getElementById("statistics").innerHTML += `<div>Month Total Sales:<br>RM ${monthTotalSales.toFixed(2)}</div>`;
             report();
 
         });
@@ -485,7 +526,7 @@
 
             });
 
-            document.getElementById("statistics").innerHTML += `<div>Year Total Sales: RM ${yearTotalSales.toFixed(2)}</div>`;
+            document.getElementById("statistics").innerHTML += `<div>Year Total Sales:<br>RM ${yearTotalSales.toFixed(2)}</div>`;
             report();
 
         });
