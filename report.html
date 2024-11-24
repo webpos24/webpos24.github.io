@@ -63,18 +63,18 @@
             <div style="padding: 20px; height: calc(100% - 40px);">
                 <div
                     style="position: absolute; z-index: 1; right: 0%; margin: 10px; margin-bottom: 30px; text-align: right;">
-                    <button type="button" id="daily" class="switchButton" onclick="reportType = 'daily';">DAILY</button>
+                    <button type="button" id="daily" class="switchButton switchActive" onclick="reportType = 'daily';">DAILY</button>
                     <button type="button" id="monthly" class="switchButton"
                         onclick="reportType = 'monthly';">MONTHLY</button>
                     <button type="button" id="annual" class="switchButton" style="margin-right: 50px;"
                         onclick="reportType = 'annual';">ANNUAL</button>
                     <label style="vertical-align: middle;">Date</label>
                     <input type="date" id="date"
-                        style="height: 28px; width: 160px; vertical-align: top; padding: 0; text-align: center; font-size: 16px;">
+                        style="height: 28px; width: 160px; vertical-align: top; padding: 0; text-align: center; font-size: 20px; font-family: 'Times New Roman', Times, serif;">
                 </div>
 
-                <div style="position: absolute; transform: translate(-50%, -50%); top: 50%; left: 50%;">
-                    <div id="myChart" style="width: 100vw; max-width: calc(80vw); height: calc(100vh - 100px);"></div>
+                <div style="position: absolute; transform: translate(-50%, -50%); top: 45%; left: 50%;">
+                    <div id="myChart" style="width: 100vw; max-width: calc(80vw); height: calc(100vh - 200px); max-height: 60vw;"></div>
                 </div>
 
                 <div id="statistics"
@@ -380,7 +380,7 @@
             }
 
             // Update statistics
-            document.getElementById("statistics").innerHTML += `<div>Total Sales:<br>RM ${totalSales.toFixed(2)}</div>`;
+            document.getElementById("statistics").innerHTML += `<div>Total Daily Sales:<br>RM ${totalSales.toFixed(2)}</div>`;
             report();
 
         }, {
@@ -447,7 +447,7 @@
 
             });
 
-            document.getElementById("statistics").innerHTML += `<div>Month Total Sales:<br>RM ${monthTotalSales.toFixed(2)}</div>`;
+            document.getElementById("statistics").innerHTML += `<div>Total Monthly Sales:<br>RM ${monthTotalSales.toFixed(2)}</div>`;
             report();
 
         });
@@ -526,7 +526,7 @@
 
             });
 
-            document.getElementById("statistics").innerHTML += `<div>Year Total Sales:<br>RM ${yearTotalSales.toFixed(2)}</div>`;
+            document.getElementById("statistics").innerHTML += `<div>Total Annual Sales:<br>RM ${yearTotalSales.toFixed(2)}</div>`;
             report();
 
         });

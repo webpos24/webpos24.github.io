@@ -14,6 +14,7 @@
             overflow: hidden;
             position: relative;
             height: 100%;
+            grid-area: main;
         }
 
         .serviceBorder {
@@ -94,7 +95,7 @@
             </div>
         </div>
 
-        <div id="main" class="content" style="grid-area: main;">
+        <div id="main" class="content">
             <div style="margin: 10px; margin-bottom: 30px; text-align: right;">
                 <label style="padding-right: 7%;">
                     <span class="label"
@@ -210,29 +211,28 @@
 
     // Modify Inventory Table
     onValue(ref(database, 'services/categories'), (snapshot) => {
+
+        //Initialise table
+        document.getElementById("services").innerHTML = `
+            <tr class="serviceBorder" style="position: sticky; top: 0; box-shadow: 0 0px 0.5px 1px #dadada; background-color: white; user-select: none; z-index: 1;">
+                <th class="serviceBorder" style="min-width: 40px;"></th>
+                <th class="serviceBorder" style="width: 100px;">Category</th>
+                <th class="serviceBorder" style="min-width: 40px;"></th>
+                <th class="serviceBorder" style="width: 198px;">Name</th>
+                <th class="serviceBorder" style="width: 98px;">Price</th>
+                <th class="serviceBorder" style="min-width: 40px;"></th>
+            <tr>
+            <tr class="serviceBorder" style="color: lightgray;">
+                <td class="serviceBorder" style="min-width: 40px;">x</th>
+                <td class="serviceBorder" style="width: 100px;">Example</th>
+                <td class="serviceBorder" style="min-width: 40px;">0</th>
+                <td class="serviceBorder" style="width: 198px;">Apple</th>
+                <td class="serviceBorder" style="width: 98px;">10.00</th>
+                <td class="serviceBorder" style="min-width: 40px;">x</th>
+            <tr>
+        `;
+
         if (snapshot.exists()) {
-
-            //Initialise table
-            document.getElementById("services").innerHTML = `
-                <tr class="serviceBorder" style="position: sticky; top: 0; box-shadow: 0 0px 0.5px 1px #dadada; background-color: white; user-select: none;">
-                    <th class="serviceBorder" style="min-width: 40px; font-family: Arial, sans-serif;"></td>
-                    <th class="serviceBorder" style="width: 100px;">Category</td>
-                    <th class="serviceBorder" style="min-width: 40px;"></td>
-                    <th class="serviceBorder" style="width: 198px;">Name</td>
-                    <th class="serviceBorder" style="width: 98px;">Price</td>
-                    <th class="serviceBorder" style="min-width: 40px;"></td>
-                <tr>
-                <tr class="serviceBorder" style="color: lightgray;">
-                    <td class="serviceBorder" style="min-width: 40px; font-family: Arial, sans-serif;">x</td>
-                    <td class="serviceBorder" style="width: 100px;">Example</td>
-                    <td class="serviceBorder" style="min-width: 40px;">0</td>
-                    <td class="serviceBorder" style="width: 198px;">TEST1</td>
-                    <td class="serviceBorder" style="width: 98px;">10.00</td>
-                    <td class="serviceBorder" style="min-width: 40px;">x</td>
-                <tr>
-            `
-
-            var i = 0;
 
             //CATEGORY - categorySnapshot.val().name
             snapshot.forEach(function (categorySnapshot) {
@@ -269,17 +269,18 @@
 
                 }, 1);
 
-                var j = 0;
+                //Index for counting item quantity
+                var index = 0;
 
                 //If the category has child
                 if (categorySnapshot.child("items").val() != "") {
-                    //ITEM - childSnapshot.key (price - childSnapshot.val())
+                    //ITEM - childSnapshot.val().name, PRICE - childSnapshot.val().price
                     categorySnapshot.child("items").forEach(function (childSnapshot) {
 
                         //Set to Price at the third <td>
                         document.getElementById("service_" + categorySnapshot.key).innerHTML += `
                             <tr class="serviceBorder">
-                                <td class="serviceBorder" style="white-space: normal; overflow-wrap: break-word; max-width: 40px; min-width: 40px;">${j + 1}</td>
+                                <td class="serviceBorder" style="max-width: 40px; min-width: 40px;">${index + 1}</td>
                                 <td class="serviceBorder" style="text-align: center; font-size: 20px; max-width: 40px; min-width: 198px; outline: none;">
                                     <input type="text" id="editItemName_${childSnapshot.key}" class="inputBox" value="${childSnapshot.val().name}">
                                 </td>
@@ -290,22 +291,15 @@
                             </tr>
                         `;
 
-                        var quantity = childSnapshot.val().quantity;
-                        if (quantity == undefined || quantity == "-") {
-                            quantity = "\"-\"";
-                        };
-
                         setTimeout(() => {
 
                             // Remove item
                             document.getElementById("removeItem_" + childSnapshot.key).addEventListener('click', (e) => {
-                                console.log("Remove Item");
                                 remove(ref(database, 'services/categories/' + categorySnapshot.key + '/items/' + childSnapshot.key));
                             });
 
                             // Edit item name
                             document.getElementById("editItemName_" + childSnapshot.key).addEventListener('focusout', (e) => {
-                                console.log("Edit Item ", document.getElementById("editItemName_" + childSnapshot.key).value);
                                 set(ref(database, 'services/categories/' + categorySnapshot.key + '/items/' + childSnapshot.key + '/name'),
                                     document.getElementById("editItemName_" + childSnapshot.key).value
                                 );
@@ -313,7 +307,6 @@
 
                             // Edit item price
                             document.getElementById("editItemPrice_" + childSnapshot.key).addEventListener('focusout', (e) => {
-                                console.log("Edit Item ", document.getElementById("editItemPrice_" + childSnapshot.key).value);
                                 set(ref(database, 'services/categories/' + categorySnapshot.key + '/items/' + childSnapshot.key + '/price'),
                                     Number(document.getElementById("editItemPrice_" + childSnapshot.key).value)
                                 );
@@ -321,7 +314,7 @@
 
                         }, 1);
 
-                        j++;
+                        index++;
                     });
                 };
 
@@ -329,7 +322,7 @@
                 document.getElementById("service_" + categorySnapshot.key).innerHTML += `
                     <tr class="serviceBorder">
                         <td colspan="4" style="padding: 0px;">
-                            <div id="addItem_${categorySnapshot.key}" class="updateButton" style="color: gray; padding: 5px;">+ ITEM</div>
+                            <div id="addItem_${categorySnapshot.key}" class="updateButton" style="color: gray; padding: 6px;">+ ITEM</div>
                         </td>
                     </tr>
                 `;
@@ -349,23 +342,21 @@
 
                 }, 1);
 
-                i++;
-
             });
-
-            //Click to append category
-            document.getElementById("services").innerHTML += `
-                <tr class="serviceBorder">
-                    <td colspan="6" style="padding: 0px;">
-                        <div id="addCategory" class="updateButton" style="color: gray; padding: 5px;">+ CATEGORY</div>
-                    </td>
-                </tr>
-            `;
 
         };
 
+        //Click to append category
+        document.getElementById("services").innerHTML += `
+            <tr class="serviceBorder">
+                <td colspan="6" style="padding: 0px;">
+                    <div id="addCategory" class="updateButton" style="color: gray; padding: 5px;">+ CATEGORY</div>
+                </td>
+            </tr>
+        `;
+
         // Add new category
-        addCategory.addEventListener('click', (e) => {
+        document.getElementById("addCategory").addEventListener('click', (e) => {
             push(ref(database, 'services/categories'), {
                 name: "New Category",
                 items: ""

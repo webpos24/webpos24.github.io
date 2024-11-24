@@ -23,6 +23,51 @@
             padding: 5px 7px 5px 7px;
             text-align: center;
         }
+
+        .refundButton {
+            font-size: 16px;
+            padding: 5px 10px 5px 10px;
+            transition: all 0.1s linear;
+            user-select: none;
+        }
+
+        .refundButton:hover {
+            background-color: rgb(250, 250, 250);
+        }
+
+        .refundButton:active {
+            background-color: rgb(240, 240, 240);
+        }
+
+        .label {
+            display: inline-block;
+            vertical-align: text-bottom;
+            border: 1px solid lightgray;
+            border-radius: 22px;
+            text-align: center;
+            height: 22px;
+            width: 22px;
+            margin-left: 5%;
+            margin-right: 10px;
+        }
+
+        .confirmButton {
+            font-size: 16px;
+            padding: 5px 10px 5px 10px;
+            font-weight: bold;
+            border: 1px solid gray;
+            border-radius: 3px;
+            background-color: white;
+            transition: all 0.1s linear;
+        }
+
+        .confirmButton:hover {
+            background-color: rgb(241, 241, 241);
+        }
+
+        .confirmButton:active {
+            background-color: rgb(226, 226, 226);
+        }
     </style>
 </head>
 
@@ -40,7 +85,9 @@
             <div id="Title" class="detail" style="font-size: min(8vw, 50px);">TRANSACTION HISTORY</div>
             <div class="detail" style="position: absolute; z-index: 3; right: 30px; white-space: nowrap;">
                 <div id="accStatus" style="position: absolute;"></div>
-                <div id="Account" style="z-index: 3; font-size: min(4vw, 20px); position: relative; background-color: white;">[Account]</div>
+                <div id="Account"
+                    style="z-index: 3; font-size: min(4vw, 20px); position: relative; background-color: white;">
+                    [Account]</div>
             </div>
         </div>
 
@@ -49,9 +96,9 @@
             <div style="padding: 20px; height: calc(100% - 40px);">
                 <div style="margin: 10px; margin-bottom: 30px; text-align: right;">
                     <label style="padding-right: 7%;">
-                        <span
-                            style="display: inline-block; vertical-align: text-bottom; background-color: lightgray; height: 22px; width: 22px;"></span>
-                        Refund
+                        <span class="label"><img src="png/refund_small.png"
+                                style="width: 18px; vertical-align: middle;"></span>Refund
+                        <span class="label" style="background-color: lightgray;"></span>Refunded
                     </label>
                     <label>Date</label>
                     <input type="date" id="date" style="height: 18px; vertical-align: top;">
@@ -229,6 +276,7 @@
                     var cartList = "";
                     var refund = "";
                     var refundButton = "";
+                    var refundClass = "";
 
                     //Transform to readable order cart
                     for (let index = 0; index < orderCart.length; index++) {
@@ -240,20 +288,24 @@
                         refund = "color: grey; background-color: lightgray;";
                     } else {
                         refundButton = "<img src=\"png/refund_small.png\" style=\"width: 18px;\">";
+                        refundClass = "refundButton";
                         setTimeout(() => {
                             //Refund function
                             document.getElementById("refund_" + childSnapshot.key).addEventListener('click', (e) => {
 
                                 //Confirm Refund Button
                                 const confirmButton = document.createElement("button");
-                                confirmButton.innerHTML = "Confirm";
+                                confirmButton.innerHTML = "CONFIRM";
                                 confirmButton.type = "button";
-                                confirmButton.style = "font-size: 16px; padding: 5px 10px 5px 10px; color: red;";
+                                confirmButton.className = "confirmButton";
+                                confirmButton.style = "color: red;";
                                 confirmButton.addEventListener('click', () => {
                                     //Perform refund
                                     update(ref(database, 'staffcode/' + sessionStorage.getItem('staffCode') + '/order/' + sDate + '/' + childSnapshot.key), {
                                         refund: true
                                     })
+                                    //Remove confirmation window
+                                    document.getElementById("confirmation").remove();
                                     //Refresh
                                     sortOrder();
                                 });
@@ -264,11 +316,11 @@
                                 const confirmation = document.createElement("div");
                                 // confirmation.innerHTML = `<div>test</div>`;
                                 confirmation.innerHTML = `
-                                    <div style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
-                                        <div style="font-size: 30px; text-align: center; position: absolute; top: 50%; left: 50%; padding: 10px 30px 10px 30px; transform: translate(-50%, -50%); border: 1px solid rgba(0, 0, 0, 0.95); background-color: rgba(255, 255, 255, 0.95);"
+                                    <div id="confirmation" style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
+                                        <div style="font-size: 30px; text-align: center; position: absolute; top: 50%; left: 50%; padding: 30px; transform: translate(-50%, -50%); border-radius: 10px; background-color: #f1f1f1;"
                                         >${info}
-                                            <div onclick="this.parentElement.parentElement.parentElement.remove();">
-                                                <button type="button" style="font-size: 16px; padding: 5px 10px 5px 10px;">Cancel</button>
+                                            <div>
+                                                <button type="button" class="confirmButton" onclick="document.getElementById('confirmation').remove();">CANCEL</button>
                                             </div>
                                         </div>
                                     </div>
@@ -290,7 +342,7 @@
                             <td>${childSnapshot.val().time}</td>
                             <td>${cartList}</td>
                             <td>${childSnapshot.val().totalPrice.toFixed(2)}</td>
-                            <td id="refund_${childSnapshot.key}">${refundButton}</td>
+                            <td id="refund_${childSnapshot.key}" class="${refundClass}">${refundButton}</td>
                         <tr>
                     `;
                     index++;

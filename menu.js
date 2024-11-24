@@ -18,6 +18,9 @@ document.getElementById("menu").outerHTML = `
         <div id="menu_report" class="menuSlot active" onclick="window.location.href = 'report.html';">
             <img src="png/report.png" style="width: 50px;" />
         </div>
+        <div id="menu_staff" class="menuSlot active" onclick="window.location.href = 'staff.html';">
+            <img src="png/staff.png" style="width: 50px;" />
+        </div>
         <div style="position: relative; height: min(60vh, 20vh);"></div>
         <div id="menu_logout" class="menuSlot active" onclick="logout()">
             <img src="png/logout.png" style="width: 50px;" />
