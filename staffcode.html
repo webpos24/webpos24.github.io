@@ -159,15 +159,13 @@
     //Get Data
     loginStaff.addEventListener('click', (e) => {
 
-        onValue(ref(database, 'staffcode/' + document.getElementById("pin").value + '/name'), (snapshot) => {
-            const data = snapshot.val();
+        onValue(ref(database, 'staffcode/' + document.getElementById("pin").value), (user) => {
 
-            console.log(snapshot.val());
-
-            if (data != null) {
+            if (user != null) {
                 //Next page
-                sessionStorage.setItem("user", data);
+                sessionStorage.setItem("user", user.val().name);
                 sessionStorage.setItem("staffCode", document.getElementById("pin").value);
+                sessionStorage.setItem("role", user.val().role);
                 sessionStorage.setItem("order", JSON.stringify([]));
                 window.location.href = "main.html";
             } else {

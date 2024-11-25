@@ -52,7 +52,9 @@
             <div id="Title" class="detail" style="font-size: min(8vw, 50px);">ORDER</div>
             <div class="detail" style="position: absolute; z-index: 3; right: 30px; white-space: nowrap;">
                 <div id="accStatus" style="position: absolute;"></div>
-                <div id="Account" style="z-index: 3; font-size: min(4vw, 20px); position: relative; background-color: white;">[Account]</div>
+                <div id="Account"
+                    style="z-index: 3; font-size: min(4vw, 20px); position: relative; background-color: white;">
+                    [Account]</div>
             </div>
         </div>
 
@@ -194,15 +196,6 @@
 
     }
 
-    function logout() {
-        //Clear session storage *temp
-        var user = sessionStorage.getItem("user");
-        if (user) {
-            window.sessionStorage.removeItem("user");
-            window.location.href = "login.html";
-        }
-    }
-
 </script>
 
 <script type="module">
@@ -275,6 +268,13 @@
         };
     });
 
+    //To set 0 before the number
+    function pad(num) {
+        num = num.toString();
+        while (num.length < 7) num = "0" + num;
+        return num;
+    };
+
     submitOrder.addEventListener('click', (e) => {
 
         //If order cart is empty
@@ -289,13 +289,6 @@
             var time = ((currentdate.getHours() / 10 >= 1) ? currentdate.getHours() : "0" + currentdate.getHours()) + ":"
                 + ((currentdate.getMinutes() / 10 >= 1) ? currentdate.getMinutes() : "0" + currentdate.getMinutes()) + ":"
                 + ((currentdate.getSeconds() / 10 >= 1) ? currentdate.getSeconds() : "0" + currentdate.getSeconds());
-
-            // //Upload order data
-            // set(ref(database, 'staffcode/' + sessionStorage.getItem('staffCode') + '/order/' + date + '/' + oID), {
-            //     orderList: sessionStorage.getItem("order"),
-            //     time: time,
-            //     totalPrice: totalPrice
-            // })
 
             //Upload order data
             set(ref(database, 'sale/' + date + '/' + oID), {
@@ -316,6 +309,34 @@
             sessionStorage.setItem("order", JSON.stringify([]));
 
         };
+
+        //Receipt printing
+        onValue(ref(database, 'sale/orderCount'), (orderCount) => {
+            if (orderCount.exists()) {
+
+                var currentdate = new Date();
+                onValue(ref(database, 'sale/' + currentdate.getFullYear() + "/" + (currentdate.getMonth() + 1) + "/" + currentdate.getDate() + "/" + pad(orderCount.val())), (order) => {
+
+                    if (order.exists()) {
+                        var date = currentdate.getDate() + "/" + (currentdate.getMonth() + 1) + "/" + currentdate.getFullYear() + " " + order.val().time;
+                        var invoiceNo = pad(orderCount.val());
+                        var cart = JSON.stringify(order.val());
+                        //Pop receipt window and print
+                        var url = 'receipt.html?data=' + date + '?data=' + invoiceNo + '?data=' + cart;
+                        window.open(url, 'MyWindow', 'width=500,height=800');
+                    } else {
+                        console.log("No data available");
+                    }
+
+                }, {
+                    onlyOnce: true
+                });
+
+            } else {
+                console.log("No data available");
+            }
+
+        });
 
         //Direct to main page
         window.location.href = "main.html";

@@ -172,15 +172,6 @@
 
     }
 
-    function logout() {
-        //Clear session storage *temp
-        var user = sessionStorage.getItem("user");
-        if (user) {
-            window.sessionStorage.removeItem("user");
-            window.location.href = "login.html";
-        }
-    }
-
 </script>
 
 <script type="module">

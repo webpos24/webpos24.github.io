@@ -133,7 +133,7 @@
     };
 
     //Retrieve item from array using index
-    function order(name, price, category) {
+    function order(name, price, category, itemKey, catKey) {
 
         document.getElementById("order").innerHTML += `
             <div style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1; background-color: rgb(0, 0, 0, 0.3);" onclick="document.getElementById('order').innerHTML = '';"></div>
@@ -190,7 +190,7 @@
                             <td class="orderBorder" style="width: 80px;">Price(RM)</td>
                         <tr>
                     </table>
-                    <div id="addOrder" class="orderButton" onclick="addOrder('${name}', ${price}, '${category}')">
+                    <div id="addOrder" class="orderButton" onclick="addOrder('${name}', ${price}, '${category}', '${itemKey}', '${catKey}')">
                         Add to order
                     </div>
                 </div>
@@ -236,7 +236,7 @@
     }
 
     //add item to order
-    function addOrder(name, price, category) {
+    function addOrder(name, price, category, itemKey, catKey) {
 
         //enable submit
         document.getElementById("submitOrder").outerHTML = `
@@ -247,7 +247,7 @@
 
         //get array from storage
         var order = JSON.parse(sessionStorage.getItem("order"));
-        order.push([name, price, category]);
+        order.push([name, price, category, itemKey, catKey]);
         sessionStorage.setItem("order", JSON.stringify(order));
         document.getElementById("addOrder").outerHTML = `
             <div id="addOrder" style="width: 100%; height: 30px; font-size: 26px; position: relative; margin-top: 20px; text-align: center;">
@@ -322,16 +322,6 @@
         refreshOrder();
     }
 
-    function logout() {
-        //Clear session storage *temp
-        var user = sessionStorage.getItem("user");
-        if (user) {
-            sessionStorage.removeItem("user");
-            sessionStorage.setItem("order", JSON.stringify([]));
-            window.location.href = "staffcode.html";
-        }
-    }
-
 </script>
 
 <script type="module">
@@ -404,7 +394,7 @@
                     //Left and Right arrow
                     document.getElementById("categoryList").innerHTML += `
                         <div class="category">
-                            <div style="position: relative; left: 10px;">${categorySnapshot.val().name}</div>
+                            <div style="position: relative; left: 10px; font-weight: bold; font-size: 24px;">${categorySnapshot.val().name}</div>
                             <div id="itemList_${categorySnapshot.key}" style="overflow: auto; font-size: 0px;">
                             </div>
                         </div>
@@ -417,7 +407,7 @@
                     categorySnapshot.child("items").forEach(function (childSnapshot) {
 
                         document.getElementById("itemList_" + categorySnapshot.key).innerHTML += `
-                            <div class="item" onclick="order('${childSnapshot.val().name}', ${childSnapshot.val().price}, '${categorySnapshot.val().name}');">
+                            <div class="item" onclick="order('${childSnapshot.val().name}', ${childSnapshot.val().price}, '${categorySnapshot.val().name}', '${childSnapshot.key}', '${categorySnapshot.key}');">
                                 <div style="position: relative; transform: translate(-50%, -50%); top: 50%; left: 50%;">
                                     <div>${childSnapshot.val().name}</div>
                                     <div>RM ${childSnapshot.val().price.toFixed(2)}</div>

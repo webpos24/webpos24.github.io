@@ -63,7 +63,8 @@
             <div style="padding: 20px; height: calc(100% - 40px);">
                 <div
                     style="position: absolute; z-index: 1; right: 0%; margin: 10px; margin-bottom: 30px; text-align: right;">
-                    <button type="button" id="daily" class="switchButton switchActive" onclick="reportType = 'daily';">DAILY</button>
+                    <button type="button" id="daily" class="switchButton switchActive"
+                        onclick="reportType = 'daily';">DAILY</button>
                     <button type="button" id="monthly" class="switchButton"
                         onclick="reportType = 'monthly';">MONTHLY</button>
                     <button type="button" id="annual" class="switchButton" style="margin-right: 50px;"
@@ -74,7 +75,9 @@
                 </div>
 
                 <div style="position: absolute; transform: translate(-50%, -50%); top: 45%; left: 50%;">
-                    <div id="myChart" style="width: 100vw; max-width: calc(80vw); height: calc(100vh - 200px); max-height: 60vw;"></div>
+                    <div id="myChart"
+                        style="width: 100vw; max-width: calc(80vw); height: calc(100vh - 200px); max-height: 60vw;">
+                    </div>
                 </div>
 
                 <div id="statistics"
@@ -143,15 +146,6 @@
             `;
         }
 
-    }
-
-    function logout() {
-        //Clear session storage *temp
-        var user = sessionStorage.getItem("user");
-        if (user) {
-            window.sessionStorage.removeItem("user");
-            window.location.href = "login.html";
-        }
     }
 
 </script>
@@ -335,13 +329,13 @@
             const chart = new google.visualization.LineChart(document.getElementById('myChart'));
             chart.draw(data, options);
         };
+
     };
 
     function getDailySales() {
 
         //Declare variables for statistics
         var totalSales = 0;
-        var preTotalSales = 0;
         document.getElementById("statistics").innerHTML = "";
 
         //Retrieve input date sorting value
@@ -368,7 +362,7 @@
                     var time = parseInt(childSnapshot.val().time.slice(0, 2));
                     var totalPrice = childSnapshot.val().totalPrice;
 
-                    if (!childSnapshot.val().refund) {
+                    if (childSnapshot.val().refund == false) {
                         salesData[time + 1][1] += totalPrice;
                         totalSales += totalPrice;
                     };
@@ -408,10 +402,11 @@
         };
 
         onValue(ref(database, 'sale/' + sDate), (snapshot) => {
-            //Declare value for storing sales
-            var daySales = 0;
 
             snapshot.forEach(function (sDay) {
+
+                //Declare value for storing sales
+                var daySales = 0;
 
                 //Get every day's sales recorded in database
                 onValue(query(ref(database, 'sale/' + sDate + "/" + sDay.key)), (snapshot) => {
@@ -428,7 +423,7 @@
 
                             var totalPrice = childSnapshot.val().totalPrice;
 
-                            if (!childSnapshot.val().refund) {
+                            if (childSnapshot.val().refund == false) {
                                 daySales += totalPrice;
                             };
 
@@ -481,10 +476,10 @@
                 //Get every day's sales recorded in database
                 onValue(ref(database, 'sale/' + sYear + "/" + sMonth.key), (snapshot) => {
 
-                    //Declare value for storing sales
-                    var daySales = 0;
-
                     snapshot.forEach(function (sDay) {
+
+                        //Declare value for storing sales
+                        var daySales = 0;
 
                         //Get every day's sales recorded in database
                         onValue(ref(database, 'sale/' + sYear + "/" + sMonth.key + "/" + sDay.key), (snapshot) => {
@@ -501,7 +496,7 @@
 
                                     var totalPrice = childSnapshot.val().totalPrice;
 
-                                    if (!childSnapshot.val().refund) {
+                                    if (childSnapshot.val().refund == false) {
                                         daySales += totalPrice;
                                     };
 
