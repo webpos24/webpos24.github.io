@@ -10,7 +10,9 @@
             font-size: 20px;
             font-family: Arial, Helvetica, sans-serif;
             overflow: hidden;
-            margin: 10px;
+            padding: 10px;
+            margin-right: 10px;
+            border-bottom: 2px dotted lightgray;
         }
 
         .item {
@@ -415,7 +417,7 @@
                     categorySnapshot.child("items").forEach(function (childSnapshot) {
 
                         document.getElementById("itemList_" + categorySnapshot.key).innerHTML += `
-                            <div class="item" style="white-space: normal;" onclick="order('${childSnapshot.val().name}', ${childSnapshot.val().price}, '${categorySnapshot.val().name}');">
+                            <div class="item" onclick="order('${childSnapshot.val().name}', ${childSnapshot.val().price}, '${categorySnapshot.val().name}');">
                                 <div style="position: relative; transform: translate(-50%, -50%); top: 50%; left: 50%;">
                                     <div>${childSnapshot.val().name}</div>
                                     <div>RM ${childSnapshot.val().price.toFixed(2)}</div>
