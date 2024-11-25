@@ -34,6 +34,27 @@
             background-color: rgb(240, 240, 240);
         }
 
+        .inputBox {
+            font-size: 24px;
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: center;
+            height: 100%;
+            width: 30%;
+            padding: 0;
+            border: 0;
+            border-bottom: 1px solid lightgray;
+            outline: 0;
+            transition: all 0.2s linear;
+        }
+
+        .inputBox:hover {
+            border-bottom: 1px solid gray;
+        }
+
+        .inputBox:focus {
+            border-bottom: 1px solid black;
+        }
+
         .label {
             display: inline-block;
             vertical-align: text-bottom;
@@ -44,6 +65,26 @@
             width: 22px;
             margin-left: 5%;
             margin-right: 10px;
+        }
+
+        .quantityButton {
+            font-size: 16px;
+            color: white;
+            padding: 5px 10px 5px 10px;
+            font-weight: bold;
+            border: 0px;
+            border-radius: 3px;
+            background-color: rgb(26, 26, 26);
+            transition: all 0.1s linear;
+            margin: 0px 10px 0px 10px;
+        }
+
+        .quantityButton:hover {
+            background-color: rgb(85, 85, 85);
+        }
+
+        .quantityButton:active {
+            background-color: rgb(122, 122, 122);
         }
     </style>
 </head>
@@ -76,11 +117,15 @@
 
                 </label>
             </div>
-            <div id="scroll" style="overflow-y: scroll; height: 80%;">
+            <div id="scroll">
                 <table id="services"
-                    style="border-collapse: collapse; position: relative; left: 50%; transform: translate(-50%, 0%); user-select: none;">
+                    style="border-collapse: collapse; position: relative; left: 50%; transform: translateX(-50%); user-select: none; margin: -1px;">
                 </table>
             </div>
+        </div>
+
+        <div id="editWindow"
+            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4;">
         </div>
 
     </div>
@@ -185,8 +230,9 @@
     onValue(ref(database, 'services/categories'), (snapshot) => {
 
         //Initialise table
+        document.getElementById("scroll").style = "position: relative; left: 50%; transform: translateX(-50%); overflow-y: auto; height: 80%; width: fit-content; border: 1px solid #dadada;";
         document.getElementById("services").innerHTML = `
-            <tr class="serviceBorder" style="position: sticky; top: 0; box-shadow: 0 0px 0.5px 1px #dadada; background-color: white; user-select: none; z-index: 1;">
+            <tr class="serviceBorder" style="position: sticky; top: 0; transform: translateY(-1px); box-shadow: 0 0px 0.5px 1px #dadada; background-color: white; user-select: none; z-index: 1;">
                 <th class="serviceBorder" style="width: 100px;">Category</th>
                 <th class="serviceBorder" style="width: 40px;"></th>
                 <th class="serviceBorder" style="width: 198px;">Name</th>
@@ -249,7 +295,7 @@
 
                             // Pop edit item quantity window
                             document.getElementById("edit_" + childSnapshot.key).addEventListener('click', (e) => {
-                                console.log("Hi ", childSnapshot.key);
+                                editWindow(childSnapshot, categorySnapshot);
                                 // set(ref(database, 'services/categories/' + categorySnapshot.key + '/items/' + childSnapshot.key + '/name'),
                                 //     document.getElementById("editItemName_" + childSnapshot.key).value
                                 // );
@@ -267,6 +313,61 @@
         };
 
     });
+
+    //Edit window for manage item quantity
+    function editWindow(item, category) {
+
+        var quantity = item.val().quantity;
+        if (quantity == undefined || quantity == "-" || quantity == "") {
+            quantity = "NO LIMIT";
+        };
+
+        document.getElementById("editWindow").innerHTML = `
+            <div style="position: absolute; transform: translate(-50%, -50%); top: 50%; left: 50%; height: 100vh; width: 100vw; background-color: black; opacity: 0.2;" onclick="document.getElementById('editWindow').innerHTML = '';"></div>
+            <div style="position: absolute; transform: translate(-50%, -50%); top: 50%; left: 50%; height: 30vh; width: 40vw; border-radius: 10px; background-color: #f1f1f1; text-align: center; padding: 20px;">
+                <div style="padding: 5px; font-size: 25px;">Category: ${category.val().name}</div>
+                <div style="padding: 5px; font-size: 30px; font-weight: bold;">Item: ${item.val().name}</div>
+                <div style="padding: 20px; font-size: 25px;">Quantity: ${quantity}</div>
+                <div style="padding: 15px;">
+                    <input type="number" id="inputQuantity" class="inputBox" min=1 value=1 oninput="if (this.value < 0 || this.value == '') { this.value = 0; this.select() }; this.value = Math.floor(this.value);">
+                    <div id="quantityError" style="color: red; height: 20px;"></div>
+                </div>
+                <div style="padding: 10px;">
+                    <button type="button" id="addQ" class="quantityButton">ADD</button>
+                    <button type="button" id="removeQ" class="quantityButton">REMOVE</button>
+                </div>
+            </div>
+        `;
+
+        if (quantity == "NO LIMIT") { quantity = 0 };
+
+        document.getElementById("addQ").addEventListener("click", () => {
+            //Retrieve quantity value for increment/decrement from the input box
+            var inputQ = parseInt(document.getElementById("inputQuantity").value);
+            document.getElementById("quantityError").innerHTML = "";
+
+            update(ref(database, 'services/categories/' + category.key + '/items/' + item.key), {
+                quantity: parseInt(quantity) + inputQ
+            });
+            document.getElementById('editWindow').innerHTML = '';
+        });
+
+        document.getElementById("removeQ").addEventListener("click", () => {
+            //Retrieve quantity value for increment/decrement from the input box
+            var inputQ = parseInt(document.getElementById("inputQuantity").value);
+            document.getElementById("quantityError").innerHTML = "";
+
+            if (quantity - inputQ >= 0) {
+                update(ref(database, 'services/categories/' + category.key + '/items/' + item.key), {
+                    quantity: parseInt(quantity) - inputQ
+                });
+                document.getElementById('editWindow').innerHTML = '';
+            } else {
+                document.getElementById("quantityError").innerHTML = "Cannot remove the quantity. (" + quantity + " - " + inputQ + " = " + (quantity - inputQ) + ", <" + 0 + ")";
+            };
+        });
+
+    };
 
 </script>
 

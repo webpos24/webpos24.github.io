@@ -53,20 +53,22 @@
 
         .confirmButton {
             font-size: 16px;
+            color: white;
             padding: 5px 10px 5px 10px;
             font-weight: bold;
-            border: 1px solid gray;
+            border: 0px;
             border-radius: 3px;
-            background-color: white;
+            background-color: rgb(26, 26, 26);
             transition: all 0.1s linear;
+            margin: 0px 10px 0px 10px;
         }
 
         .confirmButton:hover {
-            background-color: rgb(241, 241, 241);
+            background-color: rgb(85, 85, 85);
         }
 
         .confirmButton:active {
-            background-color: rgb(226, 226, 226);
+            background-color: rgb(122, 122, 122);
         }
     </style>
 </head>
@@ -105,7 +107,7 @@
                 </div>
 
                 <div style="overflow-x: hidden; height: 80%;">
-                    <table id="listOrder" style="border-collapse: collapse; width: 100%; position: relative;">
+                    <table id="listOrder" style="border-collapse: collapse; width: 100%; position: relative; border: 1px solid #dadada;">
                     </table>
                 </div>
 
@@ -189,7 +191,7 @@
 
     //createUserWithEmailAndPassword
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-    import { getDatabase, get, set, ref, child, update, onValue, query, orderByChild, orderByKey, limitToFirst, limitToLast, startAt, startAfter, endBefore } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+    import { getDatabase, get, set, ref, child, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
     // TODO: Add SDKs for Firebase products that you want to use
     // https://firebase.google.com/docs/web/setup#available-libraries
@@ -248,7 +250,7 @@
         var index;
 
         //Get list of order
-        onValue(query(ref(database, 'staffcode/' + sessionStorage.getItem('staffCode') + '/order/' + sDate)), (snapshot) => {
+        onValue(ref(database, 'sale/' + sDate), (snapshot) => {
 
             if (snapshot.exists()) {
 
@@ -259,8 +261,9 @@
                             <th style="width: 10%;">Order ID</th>
                             <th style="width: 10%;">Date</th>
                             <th style="width: 10%;">Time</th>
-                            <th style="width: 56%;">Cart</th>
+                            <th style="width: 41%;">Cart</th>
                             <th style="width: 10%;">Total (RM)</th>
+                            <th style="width: 15%;">Staff</th>
                             <th style="width: 4%;"></th>
                         <tr>
                     `;
@@ -280,7 +283,13 @@
 
                     //Transform to readable order cart
                     for (let index = 0; index < orderCart.length; index++) {
-                        cartList += `${index + 1}. [${orderCart[index][2]}] ${orderCart[index][0]} - RM${orderCart[index][1].toFixed(2)} <br>`;
+                        cartList += `
+                            ${index + 1}.
+                            <span style="background-color: cornflowerblue; color: white; font-weight: bold; padding: 2px 6px 2px 6px; border-radius: 5px;">${orderCart[index][2]}</span>
+                            <span>${orderCart[index][0]}</span>
+                            <span style="color: green;">RM${orderCart[index][1].toFixed(2)}</span>
+                            <br>
+                        `;
                     };
 
                     //Detect refunded transaction
@@ -298,10 +307,9 @@
                                 confirmButton.innerHTML = "CONFIRM";
                                 confirmButton.type = "button";
                                 confirmButton.className = "confirmButton";
-                                confirmButton.style = "color: red;";
                                 confirmButton.addEventListener('click', () => {
                                     //Perform refund
-                                    update(ref(database, 'staffcode/' + sessionStorage.getItem('staffCode') + '/order/' + sDate + '/' + childSnapshot.key), {
+                                    update(ref(database, 'sale/' + sDate + '/' + childSnapshot.key), {
                                         refund: true
                                     })
                                     //Remove confirmation window
@@ -338,10 +346,11 @@
                     document.getElementById('listOrder').innerHTML += `
                         <tr class="orderBorder" style="${refund}">
                             <td>${childSnapshot.key}</td>
-                            <td>${childSnapshot.ref._path.pieces_[3] + '/' + childSnapshot.ref._path.pieces_[4] + '/' + childSnapshot.ref._path.pieces_[5]}</td>
+                            <td>${childSnapshot.ref._path.pieces_[1] + '/' + childSnapshot.ref._path.pieces_[2] + '/' + childSnapshot.ref._path.pieces_[3]}</td>
                             <td>${childSnapshot.val().time}</td>
-                            <td>${cartList}</td>
+                            <td style="text-align: left; line-height: 1.4;">${cartList}</td>
                             <td>${childSnapshot.val().totalPrice.toFixed(2)}</td>
+                            <td>${childSnapshot.val().staffName}<br>No.${childSnapshot.val().staffCode}</td>
                             <td id="refund_${childSnapshot.key}" class="${refundClass}">${refundButton}</td>
                         <tr>
                     `;

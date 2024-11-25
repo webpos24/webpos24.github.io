@@ -258,23 +258,6 @@
         + (currentdate.getMonth() + 1) + "/"
         + currentdate.getDate();
 
-    onValue(ref(database, 'staffcode/' + sessionStorage.getItem('staffCode') + '/attendance/' + date), (snapshot) => {
-        if (snapshot.exists()) {
-            //Find unfinish clock-in - Active
-            var end = false;
-            snapshot.forEach(function (childSnapshot) {
-                if (childSnapshot.child("end").val() == false) {
-                    end = true;
-                    document.getElementById("accStatus").className = "stActive detail";
-                }
-            });
-            //If no unfinish clock-in - Unactive
-            if (end == false) {
-                document.getElementById("accStatus").className = "stUnactive detail";
-            }
-        }
-    });
-
     //Auto refresh order ID
     onValue(ref(database, 'sale/orderCount/'), (snapshot) => {
         if (snapshot.exists()) {
@@ -307,17 +290,27 @@
                 + ((currentdate.getMinutes() / 10 >= 1) ? currentdate.getMinutes() : "0" + currentdate.getMinutes()) + ":"
                 + ((currentdate.getSeconds() / 10 >= 1) ? currentdate.getSeconds() : "0" + currentdate.getSeconds());
 
+            // //Upload order data
+            // set(ref(database, 'staffcode/' + sessionStorage.getItem('staffCode') + '/order/' + date + '/' + oID), {
+            //     orderList: sessionStorage.getItem("order"),
+            //     time: time,
+            //     totalPrice: totalPrice
+            // })
+
             //Upload order data
-            set(ref(database, 'staffcode/' + sessionStorage.getItem('staffCode') + '/order/' + date + '/' + oID), {
+            set(ref(database, 'sale/' + date + '/' + oID), {
                 orderList: sessionStorage.getItem("order"),
+                refund: false,
+                staffCode: sessionStorage.getItem('staffCode'),
+                staffName: sessionStorage.getItem("user"),
                 time: time,
                 totalPrice: totalPrice
-            })
+            });
 
             //Update last order ID
-            set(ref(database, 'sale/'), {
+            update(ref(database, 'sale/'), {
                 orderCount: oCount
-            })
+            });
 
             //Clear current order
             sessionStorage.setItem("order", JSON.stringify([]));
