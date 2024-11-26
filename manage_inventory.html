@@ -276,9 +276,9 @@
                     categorySnapshot.child("items").forEach(function (childSnapshot) {
 
                         var quantity = childSnapshot.val().quantity;
-                        if (quantity == undefined || quantity == "-" || quantity == "") {
-                            quantity = "-";
-                        };
+                        // if (quantity == undefined || quantity == "-" || quantity == "") {
+                        //     quantity = "-";
+                        // };
 
                         //Set to Quantity at the third <td>
                         document.getElementById("service_" + categorySnapshot.key).innerHTML += `
@@ -319,9 +319,6 @@
     function editWindow(item, category) {
 
         var quantity = item.val().quantity;
-        if (quantity == undefined || quantity == "-" || quantity == "") {
-            quantity = "NO LIMIT";
-        };
 
         document.getElementById("editWindow").innerHTML = `
             <div style="position: absolute; transform: translate(-50%, -50%); top: 50%; left: 50%; height: 100vh; width: 100vw; background-color: black; opacity: 0.2;" onclick="document.getElementById('editWindow').innerHTML = '';"></div>
@@ -343,7 +340,8 @@
             </div>
         `;
 
-        if (quantity == "NO LIMIT") { quantity = 0 };
+        document.getElementById("inputQuantity").select();
+
 
         document.getElementById("addQ").addEventListener("click", () => {
             //Retrieve quantity value for increment/decrement from the input box

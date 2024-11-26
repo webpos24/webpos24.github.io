@@ -291,7 +291,7 @@
                         refundButton = "<img src=\"png/refund_small.png\" style=\"width: 18px;\">";
                         refundClass = "refundButton";
                         setTimeout(() => {
-                            //Refund function
+                            //Refund function with confirmation
                             document.getElementById("refund_" + childSnapshot.key).addEventListener('click', (e) => {
 
                                 //Confirm Refund Button
@@ -311,10 +311,9 @@
                                 });
 
                                 //Confirmation
-                                var info = "Do you confirm to refund for order " + childSnapshot.key + "?";
+                                var info = "Do you confirm to refund for order ID: " + childSnapshot.key + "?";
 
                                 const confirmation = document.createElement("div");
-                                // confirmation.innerHTML = `<div>test</div>`;
                                 confirmation.innerHTML = `
                                     <div id="confirmation" style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
                                         <div style="font-size: 30px; text-align: center; position: absolute; top: 50%; left: 50%; padding: 30px; transform: translate(-50%, -50%); border-radius: 10px; background-color: #f1f1f1; box-shadow: 5px 5px 10px lightgray;"
