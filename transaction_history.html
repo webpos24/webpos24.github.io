@@ -107,7 +107,7 @@
                 </div>
 
                 <div style="overflow-x: hidden; height: 80%;">
-                    <table id="listOrder" style="border-collapse: collapse; width: 100%; position: relative; border: 1px solid #dadada;">
+                    <table id="listOrder" style="border-collapse: collapse; width: 100%; position: relative;">
                     </table>
                 </div>
 
@@ -334,6 +334,7 @@
                     };
 
                     //Update List function, private functon
+                    document.getElementById('listOrder').parentElement.style.setProperty("border-bottom", "1px solid #dadada", "");
                     document.getElementById('listOrder').innerHTML += `
                         <tr class="orderBorder" style="${refund}">
                             <td>${childSnapshot.key}</td>
@@ -355,6 +356,7 @@
                 if (chosenDate == "") {
                     chosenDate = "Invalid Date";
                 };
+                document.getElementById('listOrder').parentElement.style.removeProperty("border");
                 document.getElementById('listOrder').innerHTML = `
                     <div style="height: calc(80 / 100 * (100vh - 143px));">
                         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">

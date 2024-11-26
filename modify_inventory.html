@@ -106,7 +106,7 @@
             </div>
             <div id="scroll">
                 <table id="services"
-                    style="border-collapse: collapse; position: relative; left: 50%; transform: translate(-50%, 0%); user-select: none; margin: -1px;">
+                    style="border-collapse: collapse; position: relative; left: 50%; transform: translate(-50%, 0%); user-select: none;">
                 </table>
             </div>
         </div>
@@ -213,9 +213,9 @@
     onValue(ref(database, 'services/categories'), (snapshot) => {
 
         //Initialise table
-        document.getElementById("scroll").style = "position: relative; left: 50%; transform: translateX(-50%); overflow-y: auto; height: 80%; width: fit-content; border: 1px solid #dadada;";
+        document.getElementById("scroll").style = "position: relative; left: 50%; transform: translateX(-50%); overflow-y: auto; height: 80%; width: fit-content; border-bottom: 1px solid #dadada;";
         document.getElementById("services").innerHTML = `
-            <tr class="serviceBorder" style="position: sticky; top: 0; transform: translateY(-1px); box-shadow: 0 0px 0.5px 1px #dadada; background-color: white; user-select: none; z-index: 1;">
+            <tr class="serviceBorder" style="position: sticky; top: 0; box-shadow: 0 0px 0.5px 1px #dadada; background-color: white; user-select: none; z-index: 1;">
                 <th class="serviceBorder" style="min-width: 40px;"></th>
                 <th class="serviceBorder" style="width: 100px;">Category</th>
                 <th class="serviceBorder" style="min-width: 40px;"></th>

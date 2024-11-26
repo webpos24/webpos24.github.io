@@ -43,7 +43,7 @@ html {
     transition: all 0.1s linear;
 }
 
-.menuSlot:hover .toolTip {
+.menuSlot > img:hover + .toolTip {
     opacity: 100%;
 }
 

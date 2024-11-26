@@ -2,44 +2,44 @@
 
 //Declare direct link button for each pages
 const menu_home = `
-    <div id="menu_home" class="menuSlot active" onclick="window.location.href = 'main.html';">
-        <img src="png/home.png" style="width: 50px;" />
+    <div id="menu_home" class="menuSlot active">
+        <img src="png/home.png" class="showToolTip" style="width: 50px;" onclick="window.location.href = 'main.html';" />
         <span class="toolTip">Home</span>
     </div>
 `;
 const menu_history = `
-    <div id="menu_history" class="menuSlot active" onclick="window.location.href = 'transaction_history.html';">
-        <img src="png/history.png" style="width: 50px;" />
+    <div id="menu_history" class="menuSlot active">
+        <img src="png/history.png" style="width: 50px;" onclick="window.location.href = 'transaction_history.html';" />
         <span class="toolTip">Transaction History</span>
     </div>
 `;
 const menu_manage = `
-    <div id="menu_manage" class="menuSlot active" onclick="window.location.href = 'manage_inventory.html';">
-        <img src="png/manage_inventory.png" style="width: 50px;" />
+    <div id="menu_manage" class="menuSlot active">
+        <img src="png/manage_inventory.png" style="width: 50px;" onclick="window.location.href = 'manage_inventory.html';" />
         <span class="toolTip">Manage Inventory</span>
     </div>
 `;
 const menu_modify = `
-    <div id="menu_modify" class="menuSlot active" onclick="window.location.href = 'modify_inventory.html';">
-        <img src="png/modify_inventory.png" style="width: 50px;" />
+    <div id="menu_modify" class="menuSlot active">
+        <img src="png/modify_inventory.png" style="width: 50px;" onclick="window.location.href = 'modify_inventory.html';" />
         <span class="toolTip">Modify Inventory</span>
     </div>
 `;
 const menu_report = `
-    <div id="menu_report" class="menuSlot active" onclick="window.location.href = 'report.html';">
-        <img src="png/report.png" style="width: 50px;" />
+    <div id="menu_report" class="menuSlot active">
+        <img src="png/report.png" style="width: 50px;" onclick="window.location.href = 'report.html';" />
         <span class="toolTip">Sales Report</span>
     </div>
 `;
 const menu_staff = `
-    <div id="menu_staff" class="menuSlot active" onclick="window.location.href = 'staff.html';">
-        <img src="png/staff.png" style="width: 50px;" />
+    <div id="menu_staff" class="menuSlot active">
+        <img src="png/staff.png" style="width: 50px;" onclick="window.location.href = 'staff.html';" />
         <span class="toolTip">Manage Staff</span>
     </div>
 `;
 const menu_logout = `
-    <div id="menu_logout" class="menuSlot active" style="margin-top: calc(20vh - 90px);" onclick="logout()">
-        <img src="png/logout.png" style="width: 50px;" />
+    <div id="menu_logout" class="menuSlot active" style="margin-top: calc(20vh - 90px);">
+        <img src="png/logout.png" style="width: 50px;"  onclick="logout();" />
         <span class="toolTip">Logout</span>
     </div>
 `;

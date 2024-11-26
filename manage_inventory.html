@@ -119,7 +119,7 @@
             </div>
             <div id="scroll">
                 <table id="services"
-                    style="border-collapse: collapse; position: relative; left: 50%; transform: translateX(-50%); user-select: none; margin: -1px;">
+                    style="border-collapse: collapse; position: relative; left: 50%; transform: translateX(-50%); user-select: none;">
                 </table>
             </div>
         </div>
@@ -230,9 +230,9 @@
     onValue(ref(database, 'services/categories'), (snapshot) => {
 
         //Initialise table
-        document.getElementById("scroll").style = "position: relative; left: 50%; transform: translateX(-50%); overflow-y: auto; height: 80%; width: fit-content; border: 1px solid #dadada;";
+        document.getElementById("scroll").style = "position: relative; left: 50%; transform: translateX(-50%); overflow-y: auto; height: 80%; width: fit-content; border-bottom: 1px solid #dadada;";
         document.getElementById("services").innerHTML = `
-            <tr class="serviceBorder" style="position: sticky; top: 0; transform: translateY(-1px); box-shadow: 0 0px 0.5px 1px #dadada; background-color: white; user-select: none; z-index: 1;">
+            <tr class="serviceBorder" style="position: sticky; top: 0; box-shadow: 0 0px 0.5px 1px #dadada; background-color: white; user-select: none; z-index: 1;">
                 <th class="serviceBorder" style="width: 100px;">Category</th>
                 <th class="serviceBorder" style="width: 40px;"></th>
                 <th class="serviceBorder" style="width: 198px;">Name</th>
@@ -324,7 +324,7 @@
 
         document.getElementById("editWindow").innerHTML = `
             <div style="position: absolute; transform: translate(-50%, -50%); top: 50%; left: 50%; height: 100vh; width: 100vw; background-color: black; opacity: 0.2;" onclick="document.getElementById('editWindow').innerHTML = '';"></div>
-            <div style="position: absolute; transform: translate(-50%, -50%); top: 50%; left: 50%; height: 30vh; width: 40vw; border-radius: 10px; background-color: #f1f1f1; text-align: center; padding: 20px;">
+            <div style="position: absolute; transform: translate(-50%, -50%); top: 50%; left: 50%; width: 40vw; border-radius: 10px; background-color: #f1f1f1; text-align: center; padding: 20px;">
                 <div style="padding: 5px; font-size: 25px;">Category: ${category.val().name}</div>
                 <div style="padding: 5px; font-size: 30px; font-weight: bold;">Item: ${item.val().name}</div>
                 <div style="padding: 20px; font-size: 25px;">Quantity: ${quantity}</div>
