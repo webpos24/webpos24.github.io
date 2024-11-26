@@ -31,10 +31,16 @@
             background-color: rgb(230, 230, 230);
             color: rgb(50, 50, 50);
             text-align: center;
+            border: 0;
         }
 
         .orderButton:active {
             background-color: rgb(210, 210, 210);
+        }
+
+        .orderButton:disabled {
+            background-color: gray;
+            color: lightgray;
         }
     </style>
 </head>
@@ -65,6 +71,7 @@
                 <div style="padding: 30px; height: calc(100% - 60px);">
                     <div style="height: 75%;">
                         Order ID: <span id="orderID"></span>
+                        <input type="checkbox" id="validate" style="position: absolute; display: block; height: 20px; width: 20px;" disabled>
                         <table id="orderList"
                             style="border-collapse: collapse; width: max(400px, 40vw); position: relative; margin-top: 30px;">
                         </table>
@@ -75,9 +82,9 @@
                             <br>
                             Total: RM <span id="totalPrice"></span>
                         </div>
-                        <div id="submitOrder" class="orderButton">
+                        <button id="submitOrder" type="button" class="orderButton" disabled>
                             Submit
-                        </div>
+                        </button>
                     </div>
 
                 </div>
@@ -150,10 +157,13 @@
     //refresh order
     function refreshOrder() {
 
+        //Set validate checkbox to uncheck for preparing validation
+        document.getElementById("validate").checked = false;
+
         //If order cart is not empty
         if (JSON.parse(sessionStorage.getItem("order")).length == 0) {
             window.location.href = 'main.html';
-        }
+        };
 
         //reset Total Price
         totalPrice = 0;
@@ -165,7 +175,7 @@
                 <td class="orderBorder">Name</td>
                 <td class="orderBorder" style="width: 100px;">Category</td>
                 <td class="orderBorder" style="width: 100px;">Price(RM)</td>
-            <tr>
+            </tr>
         `;
 
         var order = JSON.parse(sessionStorage.getItem("order"));
@@ -176,7 +186,7 @@
             totalPrice += order[i][1];
 
             document.getElementById('orderList').innerHTML += `
-                <tr class="orderBorder">
+                <tr class="orderBorder" name="${order[i][3]}">
                     <td class="orderBorder">${i + 1}.</td>
                     <td class="orderBorder">${name}</td>
                     <td class="orderBorder">${category}</td>
@@ -195,7 +205,7 @@
 
         document.getElementById('totalPrice').innerHTML = totalPrice.toFixed(2);
 
-    }
+    };
 
 </script>
 
@@ -252,6 +262,13 @@
         + (currentdate.getMonth() + 1) + "/"
         + currentdate.getDate();
 
+    //To set 0 before the number ('0000000')
+    function pad(num) {
+        num = num.toString();
+        while (num.length < 7) num = "0" + num;
+        return num;
+    };
+
     //Auto refresh order ID
     onValue(ref(database, 'sale/orderCount/'), (snapshot) => {
         if (snapshot.exists()) {
@@ -259,24 +276,98 @@
             //Increase orderID
             oCount = snapshot.val() + 1;
             //Convert number id to right format
-            var str = "" + oCount;
-            var ans = ('0000000' + str).substring(str.length);
+            var orderID = pad(oCount);
 
-            document.getElementById("orderID").innerHTML = ans;
+            document.getElementById("orderID").innerHTML = orderID;
 
-            oID = ans;
+            //Set the global orderID from what we just retrieve
+            oID = orderID;
 
         };
     });
 
-    //To set 0 before the number
-    function pad(num) {
-        num = num.toString();
-        while (num.length < 7) num = "0" + num;
-        return num;
+    var pass = true;
+    itemQuantityValidation();
+
+    //Detect refresh and validate the updated order list
+    document.getElementById("orderList").addEventListener("click", () => {
+        if (document.getElementById("validate").checked == false) {
+            itemQuantityValidation();
+        };
+    });
+
+    //To check if the database quantity is not enough for order quantity
+    function itemQuantityValidation() {
+        //Remove the corresponding quantity of items
+        var orderCart = JSON.parse(sessionStorage.getItem("order"));
+
+        //Count duplicates
+        const counts = {}; //From order
+        const dbCounts = {}; //From database
+        // const db
+        orderCart.forEach(function (x) { counts[x[3]] = (counts[x[3]] || 0) + 1; });
+
+        //Start verify and calculate the different between order quantity and database quantity
+        for (let index = 0; index < Object.keys(counts).length; index++) {
+            //Retrieve quantity value from database
+            var itemInfo;
+
+            orderCart.forEach(function (item) {
+                if (Object.keys(counts)[index] == item[3]) {
+                    itemInfo = item;
+                };
+            });
+
+            onValue(ref(database, 'services/categories/' + itemInfo[4] + "/items/" + itemInfo[3] + '/quantity'), (quantity) => {
+                dbCounts[quantity.ref._path.pieces_[4]] = quantity.val();
+            }, {
+                onlyOnce: true
+            });
+
+        };
+
+        //Wait until validation is done
+        var getCount = setInterval(() => {
+            if (Object.keys(dbCounts).length != 0) {
+                console.log(dbCounts);
+
+                //A pass to check if out stock exists
+                var pass = true;
+
+                for (let index = 0; index < Object.keys(counts).length; index++) {
+                    var key = Object.keys(counts)[index];
+
+                    console.log( " ", key , " ", (dbCounts[key] - counts[key]));
+                    if (dbCounts[key] - counts[key] >= 0) {
+                        console.log("no problem!");
+                    } else {
+                        console.log("yes problem!");
+                        pass = false;
+                    };
+
+                    for (let index = 0; index < -(dbCounts[key] - counts[key]); index++) {
+                        var orderRow = document.getElementsByName(key);
+                        orderRow[orderRow.length - index - 1].style = "background-color: lightgray;";
+                    };
+                };
+
+                if (pass == true) {
+                    document.getElementById("submitOrder").disabled = false;
+                } else {
+                    document.getElementById("submitOrder").disabled = true;
+                };
+
+                //Stop the looping
+                clearInterval(getCount);
+                document.getElementById("validate").checked = true;
+            };
+        }, 10);
+
     };
 
     submitOrder.addEventListener('click', (e) => {
+
+        itemQuantityValidation();
 
         //If order cart is empty
         if (JSON.parse(sessionStorage.getItem("order")).length != 0) {
@@ -291,56 +382,63 @@
                 + ((currentdate.getMinutes() / 10 >= 1) ? currentdate.getMinutes() : "0" + currentdate.getMinutes()) + ":"
                 + ((currentdate.getSeconds() / 10 >= 1) ? currentdate.getSeconds() : "0" + currentdate.getSeconds());
 
-            //Upload order data
-            set(ref(database, 'sale/' + date + '/' + oID), {
-                orderList: sessionStorage.getItem("order"),
-                refund: false,
-                staffCode: sessionStorage.getItem('staffCode'),
-                staffName: sessionStorage.getItem("user"),
-                time: time,
-                totalPrice: totalPrice
-            });
+            //If not pass
+            if (pass == false) {
+                alert("The item is out of stock!");
+            } else { //If pass
 
-            //Update last order ID
-            update(ref(database, 'sale/'), {
-                orderCount: oCount
-            });
+                //Upload order data
+                set(ref(database, 'sale/' + date + '/' + oID), {
+                    orderList: sessionStorage.getItem("order"),
+                    refund: false,
+                    staffCode: sessionStorage.getItem('staffCode'),
+                    staffName: sessionStorage.getItem("user"),
+                    time: time,
+                    totalPrice: totalPrice
+                });
 
-            //Clear current order
-            sessionStorage.setItem("order", JSON.stringify([]));
+                //Update last order ID
+                update(ref(database, 'sale/'), {
+                    orderCount: oCount
+                });
 
-        };
+                //Clear current order
+                sessionStorage.setItem("order", JSON.stringify([]));
 
-        //Receipt printing
-        onValue(ref(database, 'sale/orderCount'), (orderCount) => {
-            if (orderCount.exists()) {
+                //Receipt printing
+                onValue(ref(database, 'sale/orderCount'), (orderCount) => {
+                    if (orderCount.exists()) {
 
-                var currentdate = new Date();
-                onValue(ref(database, 'sale/' + currentdate.getFullYear() + "/" + (currentdate.getMonth() + 1) + "/" + currentdate.getDate() + "/" + pad(orderCount.val())), (order) => {
+                        var currentdate = new Date();
+                        onValue(ref(database, 'sale/' + currentdate.getFullYear() + "/" + (currentdate.getMonth() + 1) + "/" + currentdate.getDate() + "/" + pad(orderCount.val())), (order) => {
 
-                    if (order.exists()) {
-                        var date = currentdate.getDate() + "/" + (currentdate.getMonth() + 1) + "/" + currentdate.getFullYear() + " " + order.val().time;
-                        var invoiceNo = pad(orderCount.val());
-                        var cart = JSON.stringify(order.val());
-                        //Pop receipt window and print
-                        var url = 'receipt.html?data=' + date + '?data=' + invoiceNo + '?data=' + cart;
-                        window.open(url, 'MyWindow', 'width=500,height=800');
+                            if (order.exists()) {
+                                var date = currentdate.getDate() + "/" + (currentdate.getMonth() + 1) + "/" + currentdate.getFullYear() + " " + order.val().time;
+                                var invoiceNo = pad(orderCount.val());
+                                var cart = JSON.stringify(order.val());
+                                //Pop receipt window and print
+                                var url = 'receipt.html?data=' + date + '?data=' + invoiceNo + '?data=' + cart;
+                                window.open(url, 'MyWindow', 'width=500,height=800');
+                            } else {
+                                console.log("No data available");
+                            };
+
+                        }, {
+                            onlyOnce: true
+                        });
+
                     } else {
                         console.log("No data available");
                     }
 
-                }, {
-                    onlyOnce: true
                 });
 
-            } else {
-                console.log("No data available");
-            }
+                //Direct to main page
+                window.location.href = "main.html";
 
-        });
+            };
 
-        //Direct to main page
-        window.location.href = "main.html";
+        };
 
     });
 

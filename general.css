@@ -49,7 +49,7 @@ html {
     opacity: 100%;
 }
 
-.active {
+.active > img {
     cursor: pointer;
 }
 
