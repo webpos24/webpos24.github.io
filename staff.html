@@ -18,12 +18,8 @@
         .serviceBorder {
             border: 1px solid #dadada;
             font-size: 20px;
-            padding: 5px 7px 5px 7px;
+            padding: 5px 15px 5px 15px;
             text-align: center;
-        }
-
-        .serviceBorder:nth-child(2) {
-            width: 50px;
         }
 
         .inputBox {
@@ -106,7 +102,7 @@
             </div>
             <div id="scroll">
                 <table id="services"
-                    style="border-collapse: collapse; position: relative; left: 50%; transform: translate(-50%, 0%); user-select: none; margin: -1px;">
+                    style="border-collapse: collapse; position: relative; left: 50%; transform: translate(-50%, 0%); user-select: none;">
                 </table>
             </div>
         </div>
@@ -210,28 +206,24 @@
     });
 
     // Modify Inventory Table
-    onValue(ref(database, 'services/categories'), (snapshot) => {
+    onValue(ref(database, 'staffcode'), (snapshot) => {
 
         //Initialise table
-        document.getElementById("scroll").style = "position: relative; left: 50%; transform: translateX(-50%); overflow-y: auto; height: 80%; width: fit-content; border: 1px solid #dadada;";
+        document.getElementById("scroll").style = "position: relative; left: 50%; transform: translateX(-50%); overflow-y: auto; height: 80%; width: fit-content; border-bottom: 1px solid #dadada;";
         document.getElementById("services").innerHTML = `
-            <tr class="serviceBorder" style="position: sticky; top: 0; transform: translateY(-1px); box-shadow: 0 0px 0.5px 1px #dadada; background-color: white; user-select: none; z-index: 1;">
-                <th class="serviceBorder" style="min-width: 40px;"></th>
-                <th class="serviceBorder" style="width: 100px;">Category</th>
-                <th class="serviceBorder" style="min-width: 40px;"></th>
-                <th class="serviceBorder" style="width: 198px;">Name</th>
-                <th class="serviceBorder" style="width: 98px;">Price</th>
-                <th class="serviceBorder" style="min-width: 40px;"></th>
+            <tr class="serviceBorder" style="position: sticky; top: 0; box-shadow: 0 0px 0.5px 1px #dadada; background-color: white; user-select: none; z-index: 1;">
+                <th class="serviceBorder"></th>
+                <th class="serviceBorder">Name</th>
+                <th class="serviceBorder">Code</th>
+                <th class="serviceBorder">Role</th>
+                <th class="serviceBorder"></th>
             <tr>
             <tr class="serviceBorder" style="color: lightgray;">
-                <td class="serviceBorder" style="min-width: 40px;">
-                    <img src="png/cancel.png" draggable="false" style="height: 19px; vertical-align: middle; opacity: 0.25;" />
-                </th>
-                <td class="serviceBorder" style="width: 100px;">Example</td>
-                <td class="serviceBorder" style="min-width: 40px;">0</td>
-                <td class="serviceBorder" style="width: 198px;">Apple</td>
-                <td class="serviceBorder" style="width: 98px;">10.00</td>
-                <td class="serviceBorder" style="min-width: 40px;">
+                <td class="serviceBorder">0</td>
+                <td class="serviceBorder">John</td>
+                <td class="serviceBorder">1234</td>
+                <td class="serviceBorder">staff</td>
+                <td class="serviceBorder">
                     <img src="png/cancel.png" draggable="false" style="height: 19px; vertical-align: middle; opacity: 0.25;" />
                 </td>
             <tr>
@@ -239,144 +231,122 @@
 
         if (snapshot.exists()) {
 
-            //CATEGORY - categorySnapshot.val().name
-            snapshot.forEach(function (categorySnapshot) {
+            //Index for counting item quantity
+            var index = 0;
 
+            //Staff code, loop each staff infomation
+            snapshot.forEach(function (staff) {
+
+                var selected = ["", ""];
+                if (staff.val().role == "staff") {
+                    selected[0] = "selected";
+                } else if (staff.val().role == "admin") {
+                    selected[1] = "selected";
+                };
                 document.getElementById("services").innerHTML += `
                     <tr class="serviceBorder">
-                        <td id="removeCategory_${categorySnapshot.key}" class="serviceBorder updateButton" style="min-width: 40px; color: red;">
+                        <td class="serviceBorder">${index + 1}</td>
+                        <td class="serviceBorder">
+                            <input type="text" id="editStaffName_${staff.key}" class="inputBox" value="${staff.val().name}">
+                        </td>
+                        <td class="serviceBorder">${staff.key}</td>
+                        <td class="serviceBorder">
+                            <select id="editStaffRole_${staff.key}" class="inputBox">
+                                <option value="staff" ${selected[0]}>Staff</option>
+                                <option value="admin" ${selected[1]}>Admin</option>
+                            </select>
+                        </td>
+                        <td id="removeStaff_${staff.key}" class="serviceBorder updateButton">
                             <img src="png/cancel.png" draggable="false" style="height: 19px; vertical-align: middle;" />
-                        </td>
-                        <td class="serviceBorder"
-                            style="text-align: center; font-size: 20px; max-width: 40px; min-width: 158px; outline: none;">
-                            <input type="text" id="editCategoryName_${categorySnapshot.key}" class="inputBox" value="${categorySnapshot.val().name}">
-                        </td>
-                        <td colspan="4" style="padding: 0;">
-                            <table id="service_${categorySnapshot.key}" style="border-collapse: collapse; margin: -1px; width: calc(100% + 2px);">
-                            </table>
                         </td>
                     <tr>
                 `;
 
                 setTimeout(() => {
 
-                    // Remove category
-                    document.getElementById("removeCategory_" + categorySnapshot.key).addEventListener('click', (e) => {
-                        console.log("Remove Category");
-                        remove(ref(database, 'services/categories/' + categorySnapshot.key));
-                    });
-
-                    // Edit category name
-                    document.getElementById("editCategoryName_" + categorySnapshot.key).addEventListener('focusout', (e) => {
-                        console.log("Edit Category ", document.getElementById("editCategoryName_" + categorySnapshot.key).value);
-                        set(ref(database, 'services/categories/' + categorySnapshot.key + '/name'),
-                            document.getElementById("editCategoryName_" + categorySnapshot.key).value
+                    // Edit staff name
+                    document.getElementById("editStaffName_" + staff.key).addEventListener('focusout', (e) => {
+                        console.log("Edit Staff Name ", document.getElementById("editStaffName_" + staff.key).value);
+                        set(ref(database, 'staffcode/' + staff.key + '/name'),
+                            document.getElementById("editStaffName_" + staff.key).value
                         );
                     });
 
-                }, 1);
-
-                //Index for counting item quantity
-                var index = 0;
-
-                //If the category has child
-                if (categorySnapshot.child("items").val() != "") {
-                    //ITEM - childSnapshot.val().name, PRICE - childSnapshot.val().price
-                    categorySnapshot.child("items").forEach(function (childSnapshot) {
-
-                        //Set to Price at the third <td>
-                        document.getElementById("service_" + categorySnapshot.key).innerHTML += `
-                            <tr class="serviceBorder">
-                                <td class="serviceBorder" style="max-width: 40px; min-width: 40px;">${index + 1}</td>
-                                <td class="serviceBorder" style="text-align: center; font-size: 20px; max-width: 40px; min-width: 198px; outline: none;">
-                                    <input type="text" id="editItemName_${childSnapshot.key}" class="inputBox" value="${childSnapshot.val().name}">
-                                </td>
-                                <td class="serviceBorder" style="text-align: center; font-size: 20px; max-width: 40px; min-width: 98px; outline: none;">
-                                    <input type="number" id="editItemPrice_${childSnapshot.key}" class="inputBox" style="text-align: right;" value="${childSnapshot.val().price.toFixed(2)}">
-                                </td>
-                                <td id="removeItem_${childSnapshot.key}" class="serviceBorder updateButton" style="min-width: 40px; color: red;">
-                                    <img src="png/cancel.png" draggable="false" style="height: 19px; vertical-align: middle;" />
-                                </td>
-                            </tr>
-                        `;
-
-                        setTimeout(() => {
-
-                            // Remove item
-                            document.getElementById("removeItem_" + childSnapshot.key).addEventListener('click', (e) => {
-                                remove(ref(database, 'services/categories/' + categorySnapshot.key + '/items/' + childSnapshot.key));
-                            });
-
-                            // Edit item name
-                            document.getElementById("editItemName_" + childSnapshot.key).addEventListener('focusout', (e) => {
-                                set(ref(database, 'services/categories/' + categorySnapshot.key + '/items/' + childSnapshot.key + '/name'),
-                                    document.getElementById("editItemName_" + childSnapshot.key).value
-                                );
-                            });
-
-                            // Edit item price
-                            document.getElementById("editItemPrice_" + childSnapshot.key).addEventListener('focusout', (e) => {
-                                set(ref(database, 'services/categories/' + categorySnapshot.key + '/items/' + childSnapshot.key + '/price'),
-                                    Number(document.getElementById("editItemPrice_" + childSnapshot.key).value)
-                                );
-                            });
-
-                        }, 1);
-
-                        index++;
+                    // Edit staff role
+                    document.getElementById("editStaffRole_" + staff.key).addEventListener('change', (e) => {
+                        console.log("Edit Staff Name ", document.getElementById("editStaffRole_" + staff.key).value);
+                        set(ref(database, 'staffcode/' + staff.key + '/role'),
+                            document.getElementById("editStaffRole_" + staff.key).value
+                        );
                     });
-                };
 
-                //Click to append item
-                document.getElementById("service_" + categorySnapshot.key).innerHTML += `
-                    <tr class="serviceBorder">
-                        <td colspan="4" style="padding: 0px;">
-                            <div id="addItem_${categorySnapshot.key}" class="updateButton" style="color: gray; padding: 6px;">+ ITEM</div>
-                        </td>
-                    </tr>
-                `;
-
-                setTimeout(() => {
-
-                    // Add new item
-                    document.getElementById("addItem_" + categorySnapshot.key).addEventListener('click', (e) => {
-                        console.log("Add New Item");
-                        push(ref(database, 'services/categories/' + categorySnapshot.key + '/items/'), {
-                            name: "New Item",
-                            price: 0,
-                            quantity: ""
-                        });
-                        document.getElementById("removeCategory_" + categorySnapshot.key).scrollIntoView({ behavior: "smooth" });
+                    // Remove category
+                    document.getElementById("removeStaff_" + staff.key).addEventListener('click', (e) => {
+                        console.log("Remove Staff");
+                        remove(ref(database, 'staffcode/' + staff.key));
                     });
 
                 }, 1);
+
+                index++;
 
             });
+
+            //Click to append staff
+            document.getElementById("services").innerHTML += `
+                <tr class="serviceBorder">
+                    <td colspan="5" style="padding: 0px;">
+                        <div id="addStaff" class="updateButton" style="color: gray; padding: 6px;">+ STAFF</div>
+                    </td>
+                </tr>
+            `;
+
+            setTimeout(() => {
+
+                // Add new staff
+                document.getElementById("addStaff").addEventListener('click', (e) => {
+
+                    //Generate a new random staff code
+                    let newStaffCode = genStaffCode();
+                    console.log("Add New Staff ", newStaffCode);
+
+                    set(ref(database, 'staffcode/' + newStaffCode), {
+                        name: "New Staff",
+                        role: "staff"
+                    });
+                    document.getElementById("editStaffName_" + newStaffCode).parentElement.parentElement.parentElement.scrollIntoView({ behavior: "smooth", block: "center" });
+                    document.getElementById("editStaffName_" + newStaffCode).select();
+                });
+
+            }, 1);
 
         };
 
-        //Click to append category
-        document.getElementById("services").innerHTML += `
-            <tr class="serviceBorder">
-                <td colspan="6" style="padding: 0px;">
-                    <div id="addCategory" class="updateButton" style="color: gray; padding: 5px;">+ CATEGORY</div>
-                </td>
-            </tr>
-        `;
-
-        // Add new category
-        document.getElementById("addCategory").addEventListener('click', (e) => {
-            push(ref(database, 'services/categories'), {
-                name: "New Category",
-                items: ""
-            });
-            document.getElementById("scroll").scrollTo({
-                top: document.getElementById("scroll").scrollHeight,
-                behavior: "smooth"
-            });
-        });
+        //Remove the bottom line when window is inside height
+        if (document.getElementById("services").clientHeight < document.getElementById("scroll").clientHeight) {
+            document.getElementById("scroll").style.borderBottom = "";
+        };
 
     });
+
+    function genStaffCode() {
+        //Generate a new random staff code
+        let newStaffCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+
+        //Validate if the new generated code is not using
+        onValue(ref(database, 'staffcode'), (snapshot) => {
+            snapshot.forEach(function (code) {
+                if (newStaffCode == code.key) {
+                    console.log("Repeated: ", newStaffCode);
+                    newStaffCode = genStaffCode();
+                };
+            });
+        }, {
+            onlyOnce: true
+        });
+
+        return newStaffCode;
+    };
 
 </script>
 

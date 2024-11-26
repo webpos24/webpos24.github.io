@@ -109,6 +109,11 @@ function logout() {
     }
 }
 
+// Detect phone size by comparing width and height
+if (window.innerWidth < window.innerHeight) {
+    
+};
+
 /* Import statement
 
 <!-- Import Menu Bar -->
