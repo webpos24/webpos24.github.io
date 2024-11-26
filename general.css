@@ -25,6 +25,7 @@ html {
 }
 
 .toolTip {
+    visibility: hidden;
     opacity: 0;
     width: 120px;
     font-size: 20px;
@@ -44,6 +45,7 @@ html {
 }
 
 .menuSlot > img:hover + .toolTip {
+    visibility: visible;
     opacity: 100%;
 }
 
