@@ -151,106 +151,100 @@
 
 <script>
 
-    var loading;
     var totalPrice = 0;
     //order
     var oID;
     var oCount;
 
-    //Start up
-    window.onload = function () {
-        //Get data from session storage
-        var user = sessionStorage.getItem("user");
-        if (user) {
-            document.getElementById("Account").innerHTML = user;
+    // Order Class
+    class Order {
+        constructor(cart = []) {
+            //Singleton
+            if (Order.instance) {
+                return Order.instance;
+            };
 
-            // Loading animation
-            var rotate = 0;
-            loading = setInterval(() => {
-                document.getElementById("loading").style.transform = ("translate(-50%, -50%) rotate(" + rotate + "deg)");
-                rotate += 10;
-                if (rotate > 360) {
-                    rotate = 0;
-                }
-            }, 10);
+            this.cart = cart;
+            this.totalPrice = this.calcTotal();
+            Order.instance = this;
+        };
 
-            setTimeout(() => {
-                clearInterval(loading);
-            }, 3000);
+        //Store the latest item list to sessionStorage
+        updateOrder() {
+            sessionStorage.setItem("order", JSON.stringify(this.cart));
+        };
 
-            refreshOrder();
+        //Add item to cart
+        addItem(item) {
+            this.cart.push(item);
+            this.updateOrder();
 
-        } else {
-
-            //session outdated
-            var info = "Session outdated.\n Please login again.";
-            document.body.innerHTML += `
-                <div style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
-                    <div style="font-size: 30px; white-space: pre-line; text-align: center; position: absolute; top: 50%; left: 50%; padding: 10px 30px 10px 30px; transform: translate(-50%, -50%); border: 1px solid rgba(0, 0, 0, 0.6); background-color: rgba(255, 255, 255, 0.6);"
-                    >${info}
-                        <button type="button" onclick="window.location.href = 'login.html'">Return to Login</button>
-                    </div>
+            //Response for add item successfully
+            document.getElementById("addOrder").outerHTML = `
+                <div id="addOrder" style="width: 100%; height: 30px; font-size: 26px; position: relative; margin-top: 20px; text-align: center;">
+                    Added <span style="color: green;">✓</span>
                 </div>
             `;
-        }
 
-    }
+            //Refresh order to show the added item (true: isNew)
+            refreshOrder(true);
+        };
 
-    //remove item from order
-    function removeOrder(index) {
+        //Remove item from cart
+        removeItem(index) {
 
-        //Retrieve order
-        var order = JSON.parse(sessionStorage.getItem("order"));
+            var message = "Do you confirm to remove the item:<br>" + (index + 1) + ". " + this.cart[index].name + "?";
+            //Confirmation for remove item
+            confirmation(message, function () {
+                //Perform remove item from cart
+                orderCart.cart.splice(index, 1);
+                orderCart.updateOrder();
+                //Remove confirmation window
+                document.getElementById("confirmation").remove();
+                //Refresh order
+                refreshOrder();
+            });
 
-        //Confirmation
-        //Confirm Refund Button
-        const confirmButton = document.createElement("button");
-        confirmButton.innerHTML = "CONFIRM";
-        confirmButton.type = "button";
-        confirmButton.className = "confirmButton";
-        confirmButton.addEventListener('click', () => {
-            //Perform remove item
-            order.splice(index, 1);
-            sessionStorage.setItem("order", JSON.stringify(order));
-            //Remove confirmation window
-            document.getElementById("confirmation").remove();
-            //Refresh order
-            refreshOrder();
-        });
+        };
 
-        //Confirmation
-        var info = "Do you confirm to remove the item: " + (index + 1) + ". " + order[index][0] + "?";
+        //Calculate the total price of the order
+        calcTotal() {
+            this.totalPrice = 0;
+            for (var i = 0; i < this.cart.length; i++) {
+                this.totalPrice += this.cart[i].price;
+            };
+            this.updateOrder();
+            return this.totalPrice;
+        };
 
-        const confirmation = document.createElement("div");
-        confirmation.innerHTML = `
-            <div id="confirmation" style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
-                <div style="font-size: 30px; text-align: center; position: absolute; top: 50%; left: 50%; padding: 30px; transform: translate(-50%, -50%); border-radius: 10px; background-color: #f1f1f1; box-shadow: 5px 5px 10px lightgray;"
-                >${info}
-                    <div>
-                        <button type="button" class="confirmButton" onclick="document.getElementById('confirmation').remove();">CANCEL</button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        confirmation.children[0].children[0].children[0].appendChild(confirmButton);
-
-        document.getElementById("detail").appendChild(confirmation);
+        //Boolean to check if the order is empty
+        isEmpty() {
+            if (this.cart.length == 0) {
+                return true;
+            } else {
+                return false;
+            };
+        };
     };
 
+    //Initialize one and only order cart
+    if (!sessionStorage.getItem("order")) {
+        sessionStorage.setItem("order", JSON.stringify([]));
+        console.log("New Order");
+    };
+    const orderCart = new Order(JSON.parse(sessionStorage.getItem("order")));
+
+    refreshOrder();
     //refresh order
     function refreshOrder() {
 
         //Set validate checkbox to uncheck for preparing validation
         document.getElementById("validate").checked = false;
 
-        //If order cart is not empty
-        if (JSON.parse(sessionStorage.getItem("order")).length == 0) {
+        //If order cart is empty
+        if (orderCart.isEmpty()) {
             window.location.href = 'main.html';
         };
-
-        //reset Total Price
-        totalPrice = 0;
 
         //Clear current orderList display
         document.getElementById('orderList').innerHTML = `
@@ -262,91 +256,85 @@
             </tr>
         `;
 
-        var order = JSON.parse(sessionStorage.getItem("order"));
-        for (var i = 0; i < order.length; i++) {
-            var name = order[i][0];
-            var price = order[i][1].toFixed(2);
-            var category = order[i][2];
-            totalPrice += order[i][1];
+        for (var i = 0; i < orderCart.cart.length; i++) {
+            console.log(orderCart.cart[i].name);
+            var name = orderCart.cart[i].name;
+            var price = orderCart.cart[i].price.toFixed(2);
+            var category = orderCart.cart[i].category;
 
             document.getElementById('orderList').innerHTML += `
-                <tr class="orderBorder" name="${order[i][3]}">
+                <tr class="orderBorder" name="${orderCart.cart[i].itemKey}">
                     <td class="orderBorder">${i + 1}.</td>
                     <td class="orderBorder">${name}</td>
                     <td class="orderBorder">${category}</td>
                     <td class="orderBorder" style="text-align: right;">${price}</td>
-                    <td class="orderBorder updateButton" style="width: 20px;" onclick="removeOrder(${i});">
+                    <td class="orderBorder updateButton" style="width: 20px;" onclick="orderCart.removeItem(${i});">
                         <img src="png/cancel.png" draggable="false" style="height: 19px; vertical-align: middle;" />    
                     </td>
                 </tr>
             `;
         }
 
+        //Display the total price
         document.getElementById('orderList').innerHTML += `
-                <tr class="orderBorder">
-                    <td class="orderBorder" colspan="3" style="text-align: right;">Total</td>
-                    <td class="orderBorder" style="text-align: right;">${totalPrice.toFixed(2)}</td>
-                </tr>
-            `;
+            <tr class="orderBorder">
+                <td class="orderBorder" colspan="3" style="text-align: right;">Total</td>
+                <td class="orderBorder" style="text-align: right;">${orderCart.calcTotal().toFixed(2)}</td>
+            </tr>
+        `;
+        document.getElementById('totalPrice').innerHTML = orderCart.calcTotal().toFixed(2);
+    };
 
-        document.getElementById('totalPrice').innerHTML = totalPrice.toFixed(2);
+    // Confirmation function
+    function confirmation(itemMessage, action) {
+        //Confirm Refund Button
+        const confirmButton = document.createElement("button");
+        confirmButton.innerHTML = "CONFIRM";
+        confirmButton.type = "button";
+        confirmButton.className = "confirmButton";
+        confirmButton.addEventListener('click', action);
 
+        const confirmation = document.createElement("div");
+        confirmation.innerHTML = `
+            <div id="confirmation" style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 3;">
+                <div style="font-size: 30px; text-align: center; position: absolute; top: 50%; left: 50%; padding: 30px; transform: translate(-50%, -50%); border-radius: 10px; background-color: #f1f1f1; box-shadow: 5px 5px 10px lightgray;"
+                >${itemMessage}
+                    <div>
+                        <button type="button" class="confirmButton" onclick="document.getElementById('confirmation').remove();">CANCEL</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        confirmation.children[0].children[0].children[1].appendChild(confirmButton);
+
+        document.getElementById("detail").appendChild(confirmation);
     };
 
 </script>
 
 <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
 
-    //createUserWithEmailAndPassword
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-    import { getDatabase, set, ref, update, onValue, increment } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+    //Import function
+    import { set, get, ref, update, onValue, increment } from "./firebase_config.js";
+    //Import constant variables
+    import { credential, database } from "./firebase_config.js";
 
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDmYAF5VJ0RntbtrfJ_4Sk9syHYGKev4nw",
-        authDomain: "webpos24-e0eb3.firebaseapp.com",
-        databaseURL: "https://webpos24-e0eb3-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "webpos24-e0eb3",
-        storageBucket: "webpos24-e0eb3.firebasestorage.app",
-        messagingSenderId: "544188889423",
-        appId: "1:544188889423:web:9d7c59723cde33292bad3a"
+    //Get current date
+    function getDate() {
+        var currentdate = new Date();
+        return currentdate.getFullYear() + "/"
+            + (currentdate.getMonth() + 1) + "/"
+            + currentdate.getDate();
     };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const database = getDatabase(app);
-
-    // If logged out somewhere
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // User is signed in, see docs for a list of available properties
-            // https://firebase.google.com/docs/reference/js/auth.user
-            console.log("[User Credential] " + user.uid);
-
-            // Remove loading animation
-            clearInterval(loading);
-            document.getElementById("loading").remove();
-
-            // ...
-        } else {
-            // User is signed out
-            // ...
-            alert("Oh no, you have been signed out.");
-            window.location.href = "login.html"
-        }
-    });
-
-    //Auto refresh staff status
-    var currentdate = new Date();
-    var date = currentdate.getFullYear() + "/"
-        + (currentdate.getMonth() + 1) + "/"
-        + currentdate.getDate();
+    //Get current time
+    function getTime() {
+        var currentdate = new Date();
+        return ((currentdate.getHours() / 10 >= 1) ? currentdate.getHours() : "0" + currentdate.getHours()) + ":"
+            + ((currentdate.getMinutes() / 10 >= 1) ? currentdate.getMinutes() : "0" + currentdate.getMinutes()) + ":"
+            + ((currentdate.getSeconds() / 10 >= 1) ? currentdate.getSeconds() : "0" + currentdate.getSeconds());
+    }
 
     //To set 0 before the number ('0000000')
     function pad(num) {
@@ -384,27 +372,27 @@
 
     //To check if the database quantity is not enough for order quantity
     function itemQuantityValidation() {
-        //Remove the corresponding quantity of items
-        var orderCart = JSON.parse(sessionStorage.getItem("order"));
 
         //Count duplicates
         const counts = {}; //From order
         const dbCounts = {}; //From database
         // const db
-        orderCart.forEach(function (x) { counts[x[3]] = (counts[x[3]] || 0) + 1; });
+        orderCart.cart.forEach(function (x) { counts[x.itemKey] = (counts[x.itemKey] || 0) + 1; });
+
+        console.log(counts);
 
         //Start verify and calculate the different between order quantity and database quantity
         for (let index = 0; index < Object.keys(counts).length; index++) {
             //Retrieve quantity value from database
             var itemInfo;
 
-            orderCart.forEach(function (item) {
-                if (Object.keys(counts)[index] == item[3]) {
+            orderCart.cart.forEach(function (item) {
+                if (Object.keys(counts)[index] == item.itemKey) {
                     itemInfo = item;
                 };
             });
 
-            onValue(ref(database, 'services/categories/' + itemInfo[4] + "/items/" + itemInfo[3] + '/quantity'), (quantity) => {
+            onValue(ref(database, 'services/categories/' + itemInfo.catKey + "/items/" + itemInfo.itemKey + '/quantity'), (quantity) => {
                 dbCounts[quantity.ref._path.pieces_[4]] = quantity.val();
             }, {
                 onlyOnce: true
@@ -448,18 +436,8 @@
 
     submitOrder.addEventListener('click', (e) => {
 
-        //If order cart is empty
-        if (JSON.parse(sessionStorage.getItem("order")).length != 0) {
-
-            //Initialize date and time
-            var currentdate = new Date();
-            var date = currentdate.getFullYear() + "/"
-                + (currentdate.getMonth() + 1) + "/"
-                + currentdate.getDate();
-
-            var time = ((currentdate.getHours() / 10 >= 1) ? currentdate.getHours() : "0" + currentdate.getHours()) + ":"
-                + ((currentdate.getMinutes() / 10 >= 1) ? currentdate.getMinutes() : "0" + currentdate.getMinutes()) + ":"
-                + ((currentdate.getSeconds() / 10 >= 1) ? currentdate.getSeconds() : "0" + currentdate.getSeconds());
+        //If order cart is not empty
+        if (!orderCart.isEmpty()) {
 
             //If not pass
             if (pass == false) {
@@ -467,22 +445,20 @@
             } else { //If pass
 
                 //Remove the corresponding quantity
-                var order = JSON.parse(sessionStorage.getItem("order"));
-
-                order.forEach(element => {
-                    update(ref(database, 'services/categories/' + element[4] + '/items/' + element[3]), {
+                orderCart.cart.forEach(element => {
+                    update(ref(database, 'services/categories/' + element.catKey + '/items/' + element.itemKey), {
                         quantity: increment(-1)
                     });
                 });
 
                 //Upload order data
-                set(ref(database, 'sale/' + date + '/' + oID), {
-                    orderList: sessionStorage.getItem("order"),
+                set(ref(database, 'sale/' + getDate() + '/' + oID), {
+                    orderList: orderCart.cart,
                     refund: false,
-                    staffCode: sessionStorage.getItem('staffCode'),
-                    staffName: sessionStorage.getItem("user"),
-                    time: time,
-                    totalPrice: totalPrice
+                    staffCode: credential().staffCode,
+                    staffName: credential().name,
+                    time: getTime(),
+                    totalPrice: orderCart.calcTotal()
                 });
 
                 //Update last order ID
@@ -491,21 +467,19 @@
                 });
 
                 //Clear current order
-                sessionStorage.setItem("order", JSON.stringify([]));
+                sessionStorage.removeItem("order");
 
                 //Receipt printing
                 onValue(ref(database, 'sale/orderCount'), (orderCount) => {
                     if (orderCount.exists()) {
 
-                        var currentdate = new Date();
-                        onValue(ref(database, 'sale/' + currentdate.getFullYear() + "/" + (currentdate.getMonth() + 1) + "/" + currentdate.getDate() + "/" + pad(orderCount.val())), (order) => {
+                        onValue(ref(database, 'sale/' + getDate() + "/" + pad(orderCount.val())), (order) => {
 
                             if (order.exists()) {
-                                var date = currentdate.getDate() + "/" + (currentdate.getMonth() + 1) + "/" + currentdate.getFullYear() + " " + order.val().time;
                                 var invoiceNo = pad(orderCount.val());
-                                var cart = JSON.stringify(order.val());
+                                var cart = JSON.stringify(orderCart);
                                 //Pop receipt window and print
-                                var url = 'receipt.html?data=' + date + '?data=' + invoiceNo + '?data=' + cart;
+                                var url = 'receipt.html?data=' + getDate() + " " + getTime() + '?data=' + invoiceNo + '?data=' + cart;
                                 window.open(url, 'MyWindow', 'width=500,height=800');
                             } else {
                                 console.log("No data available");

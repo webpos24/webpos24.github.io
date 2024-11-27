@@ -136,98 +136,168 @@
 <!-- Import Menu Bar -->
 <script type="text/javascript" src="menu.js"></script>
 
-<script>
+<script type="module">
 
-    var loading;
+    //Import function
+    import { set, get, ref, update, onValue, increment } from "./firebase_config.js";
+    //Import constant variables
+    import { credential, database } from "./firebase_config.js";
 
-    //Start up
-    window.onload = function () {
-        //Get data from session storage
-        var user = sessionStorage.getItem("user");
-        if (user) {
-            document.getElementById("Account").innerHTML = user;
+    class Category {
+        constructor(name, key) {
+            this.name = name;
+            this.key = key;
+        };
+        createRow() {
+            document.getElementById("services").innerHTML += `
+                <tr class="serviceBorder">
+                    <td class="serviceBorder"
+                        style="max-width: 40px; min-width: 158px; outline: none;">${this.name}</td>
+                    <td colspan="4" style="padding: 0px;">
+                        <table id="service_${this.key}" style="border-collapse: collapse; margin: -1px; width: calc(100% + 2px);">
+                        </table>
+                    </td>
+                <tr>
+            `;
+        };
+    };
 
-            // Loading animation
-            var rotate = 0;
-            loading = setInterval(() => {
-                document.getElementById("loading").style.transform = ("translate(-50%, -50%) rotate(" + rotate + "deg)");
-                rotate += 10;
-                if (rotate > 360) {
-                    rotate = 0;
-                }
-            }, 10);
+    // Item Factory Class
+    class ItemFactory {
+        static createItem(name, price = null, category, itemKey, catKey, quantity = null) {
+            if (price != null) {
+                return new ItemWP(name, price, category, itemKey, catKey);
+            } if (quantity != null) {
+                return new ItemWQ(name, quantity, itemKey);
+            } else {
+                return new Item(name, category, itemKey, catKey);
+            };
+        };
+    };
+
+    // Item Class
+    class Item {
+        constructor(name, category, itemKey, catKey) {
+            this.name = name;
+            this.category = category;
+            this.itemKey = itemKey;
+            this.catKey = catKey;
+        };
+
+        //Check if the item attribute is complete
+        isComplete() {
+            if (this.name != null,
+                this.category != null,
+                this.itemKey != null,
+                this.catKey != null) {
+                return true;
+            } else {
+                return false;
+            };
+        };
+    };
+
+
+    // Item with Quantity Class - Add Quantity
+    class ItemWQ extends Item {
+        constructor(name, quantity, itemKey) {
+            super(name);
+            this.key = itemKey;
+            this.quantity = quantity;
+        };
+
+        //Check if the item attribute is complete
+        isComplete() {
+            if (this.name != null,
+                this.quantity != null,
+                this.category != null,
+                this.itemKey != null,
+                this.catKey != null) {
+                return true;
+            } else {
+                return false;
+            };
+        };
+
+        createRow(index, category) {
+            //Set to Quantity at the third <td>
+            document.getElementById("service_" + category.key).innerHTML += `
+                <tr class="serviceBorder">
+                    <td class="serviceBorder" style="width: 40px;">${index + 1}</td>
+                    <td class="serviceBorder" style="min-width: 198px; outline: none;">${this.name}</td>
+                    <td class="serviceBorder" style="min-width: 98px; outline: none;">${this.quantity}</td>
+                    <td id="edit_${this.key}" class="serviceBorder editButton" style="width: 40px;">
+                        <img src="png/edit.png" draggable="false" style="width: 18px; vertical-align: middle;">
+                    </th>
+                </tr>
+            `;
 
             setTimeout(() => {
-                clearInterval(loading);
-            }, 3000);
 
-        } else {
+                // Pop edit item quantity window
+                document.getElementById("edit_" + this.key).addEventListener('click', (e) => {
+                    this.editWindow(category);
+                });
 
-            //session outdated
-            var info = "Session outdated.\n Please login again.";
-            document.body.innerHTML += `
-            <div style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
-                <div style="font-size: 30px; white-space: pre-line; text-align: center; position: absolute; top: 50%; left: 50%; padding: 10px 30px 10px 30px; transform: translate(-50%, -50%); border: 1px solid rgba(0, 0, 0, 0.6); background-color: rgba(255, 255, 255, 0.6);"
-                >${info}
-                    <button type="button" onclick="window.location.href = 'staffcode.html'">Return to Login</button>
+            }, 1);
+        };
+
+        //Edit window for manage item quantity
+        editWindow(category) {
+
+            document.getElementById("editWindow").innerHTML = `
+                <div style="position: absolute; transform: translate(-50%, -50%); top: 50%; left: 50%; height: 100vh; width: 100vw; background-color: black; opacity: 0.2;" onclick="document.getElementById('editWindow').innerHTML = '';"></div>
+                <div style="position: absolute; transform: translate(-50%, -50%); top: 50%; left: 50%; width: 40vw; border-radius: 10px; background-color: #f1f1f1; text-align: center; padding: 20px;">
+                    <div style="padding: 5px; font-size: 25px;">Category: ${category.name}</div>
+                    <div style="padding: 5px; font-size: 30px; font-weight: bold;">Item: ${this.name}</div>
+                    <div style="padding: 20px; font-size: 25px;">Quantity: ${this.quantity}</div>
+                    <div style="padding: 15px;">
+                        <input type="number" id="inputQuantity" class="inputBox" min=1 value=1 oninput="if (this.value < 0 || this.value == '') { this.value = 0; this.select() }; this.value = Math.floor(this.value);">
+                        <div id="quantityError" style="color: red; height: 20px;"></div>
+                    </div>
+                    <div style="padding: 10px;">
+                        <button type="button" id="addQ" class="quantityButton">ADD</button>
+                        <button type="button" id="removeQ" class="quantityButton">REMOVE</button>
+                    </div>
+                    <div style="position: absolute; top: 10px; right: 10px; cursor: pointer;" onclick="document.getElementById('editWindow').innerHTML = '';">
+                        <img src="png/cancel.png" style="height: 30px;" />
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
 
-        }
+            //Select the text for smoother experience
+            document.getElementById("inputQuantity").select();
 
+            document.getElementById("addQ").addEventListener("click", () => {
+                //Retrieve quantity value for increment from the input box
+                var inputQ = parseInt(document.getElementById("inputQuantity").value);
+                document.getElementById("quantityError").innerHTML = "";
+
+                update(ref(database, 'services/categories/' + category.key + '/items/' + this.key), {
+                    quantity: parseInt(this.quantity) + inputQ
+                });
+                document.getElementById('editWindow').innerHTML = '';
+            });
+
+            document.getElementById("removeQ").addEventListener("click", () => {
+                //Retrieve quantity value for decrement from the input box
+                var inputQ = parseInt(document.getElementById("inputQuantity").value);
+                document.getElementById("quantityError").innerHTML = "";
+
+                if (this.quantity - inputQ >= 0) {
+                    update(ref(database, 'services/categories/' + category.key + '/items/' + this.key), {
+                        quantity: parseInt(this.quantity) - inputQ
+                    });
+                    document.getElementById('editWindow').innerHTML = '';
+                } else {
+                    document.getElementById("quantityError").innerHTML = "Cannot remove the quantity. (" + this.quantity + " - " + inputQ + " = " + (this.quantity - inputQ) + ", <" + 0 + ")";
+                };
+            });
+
+        };
     };
 
-</script>
-
-<script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-
-    //createUserWithEmailAndPassword
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-    import { getDatabase, set, ref, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDmYAF5VJ0RntbtrfJ_4Sk9syHYGKev4nw",
-        authDomain: "webpos24-e0eb3.firebaseapp.com",
-        databaseURL: "https://webpos24-e0eb3-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "webpos24-e0eb3",
-        storageBucket: "webpos24-e0eb3.firebasestorage.app",
-        messagingSenderId: "544188889423",
-        appId: "1:544188889423:web:9d7c59723cde33292bad3a"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const database = getDatabase(app);
-
-    // If logged out somewhere
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // User is signed in, see docs for a list of available properties
-            // https://firebase.google.com/docs/reference/js/auth.user
-            console.log("[User Credential] " + user.uid);
-
-            // Remove loading animation
-            clearInterval(loading);
-            document.getElementById("loading").remove();
-
-            // ...
-        } else {
-            // User is signed out
-            // ...
-            alert("Oh no, you have been signed out.");
-            window.location.href = "login.html"
-        }
-    });
-
-    // Modify Inventory Table
+    // Display Modify Inventory Table
     onValue(ref(database, 'services/categories'), (snapshot) => {
 
         //Initialise table
@@ -251,21 +321,15 @@
             <tr>
         `;
 
+        //If there is at least one category
         if (snapshot.exists()) {
 
             //CATEGORY - categorySnapshot.val().name
             snapshot.forEach(function (categorySnapshot) {
 
-                document.getElementById("services").innerHTML += `
-                <tr class="serviceBorder">
-                    <td class="serviceBorder"
-                        style="max-width: 40px; min-width: 158px; outline: none;">${categorySnapshot.val().name}</td>
-                    <td colspan="4" style="padding: 0px;">
-                        <table id="service_${categorySnapshot.key}" style="border-collapse: collapse; margin: -1px; width: calc(100% + 2px);">
-                        </table>
-                    </td>
-                <tr>
-                `;
+                //Create a row for this category information
+                const category = new Category(categorySnapshot.val().name, categorySnapshot.key);
+                category.createRow();
 
                 //Index for counting item quantity
                 var index = 0;
@@ -275,35 +339,11 @@
                     //ITEM - childSnapshot.val().name, QUANTITY - childSnapshot.val().quantity
                     categorySnapshot.child("items").forEach(function (childSnapshot) {
 
+                        //Create a row for this item information
+                        const item = ItemFactory.createItem(childSnapshot.val().name, null, null, childSnapshot.key, null, childSnapshot.val().quantity);
+                        item.createRow(index, category);
+
                         var quantity = childSnapshot.val().quantity;
-                        // if (quantity == undefined || quantity == "-" || quantity == "") {
-                        //     quantity = "-";
-                        // };
-
-                        //Set to Quantity at the third <td>
-                        document.getElementById("service_" + categorySnapshot.key).innerHTML += `
-                            <tr class="serviceBorder">
-                                <td class="serviceBorder" style="width: 40px;">${index + 1}</td>
-                                <td class="serviceBorder" style="min-width: 198px; outline: none;">${childSnapshot.val().name}</td>
-                                <td class="serviceBorder" style="min-width: 98px; outline: none;">${quantity}</td>
-                                <td id="edit_${childSnapshot.key}" class="serviceBorder editButton" style="width: 40px;">
-                                    <img src="png/edit.png" draggable="false" style="width: 18px; vertical-align: middle;">
-                                </th>
-                            </tr>
-                        `;
-
-                        setTimeout(() => {
-
-                            // Pop edit item quantity window
-                            document.getElementById("edit_" + childSnapshot.key).addEventListener('click', (e) => {
-                                editWindow(childSnapshot, categorySnapshot);
-                                // set(ref(database, 'services/categories/' + categorySnapshot.key + '/items/' + childSnapshot.key + '/name'),
-                                //     document.getElementById("editItemName_" + childSnapshot.key).value
-                                // );
-
-                            });
-
-                        }, 1);
 
                         index++;
                     });
@@ -313,63 +353,12 @@
 
         };
 
+        //Remove the bottom line when window is inside height
+        if (document.getElementById("services").parentElement.clientHeight > document.getElementById("services").clientHeight) {
+            document.getElementById("services").parentElement.style.borderBottom = "";
+        };
+
     });
-
-    //Edit window for manage item quantity
-    function editWindow(item, category) {
-
-        var quantity = item.val().quantity;
-
-        document.getElementById("editWindow").innerHTML = `
-            <div style="position: absolute; transform: translate(-50%, -50%); top: 50%; left: 50%; height: 100vh; width: 100vw; background-color: black; opacity: 0.2;" onclick="document.getElementById('editWindow').innerHTML = '';"></div>
-            <div style="position: absolute; transform: translate(-50%, -50%); top: 50%; left: 50%; width: 40vw; border-radius: 10px; background-color: #f1f1f1; text-align: center; padding: 20px;">
-                <div style="padding: 5px; font-size: 25px;">Category: ${category.val().name}</div>
-                <div style="padding: 5px; font-size: 30px; font-weight: bold;">Item: ${item.val().name}</div>
-                <div style="padding: 20px; font-size: 25px;">Quantity: ${quantity}</div>
-                <div style="padding: 15px;">
-                    <input type="number" id="inputQuantity" class="inputBox" min=1 value=1 oninput="if (this.value < 0 || this.value == '') { this.value = 0; this.select() }; this.value = Math.floor(this.value);">
-                    <div id="quantityError" style="color: red; height: 20px;"></div>
-                </div>
-                <div style="padding: 10px;">
-                    <button type="button" id="addQ" class="quantityButton">ADD</button>
-                    <button type="button" id="removeQ" class="quantityButton">REMOVE</button>
-                </div>
-                <div style="position: absolute; top: 10px; right: 10px; cursor: pointer;" onclick="document.getElementById('editWindow').innerHTML = '';">
-                    <img src="png/cancel.png" style="height: 30px;" />
-                </div>
-            </div>
-        `;
-
-        document.getElementById("inputQuantity").select();
-
-
-        document.getElementById("addQ").addEventListener("click", () => {
-            //Retrieve quantity value for increment/decrement from the input box
-            var inputQ = parseInt(document.getElementById("inputQuantity").value);
-            document.getElementById("quantityError").innerHTML = "";
-
-            update(ref(database, 'services/categories/' + category.key + '/items/' + item.key), {
-                quantity: parseInt(quantity) + inputQ
-            });
-            document.getElementById('editWindow').innerHTML = '';
-        });
-
-        document.getElementById("removeQ").addEventListener("click", () => {
-            //Retrieve quantity value for increment/decrement from the input box
-            var inputQ = parseInt(document.getElementById("inputQuantity").value);
-            document.getElementById("quantityError").innerHTML = "";
-
-            if (quantity - inputQ >= 0) {
-                update(ref(database, 'services/categories/' + category.key + '/items/' + item.key), {
-                    quantity: parseInt(quantity) - inputQ
-                });
-                document.getElementById('editWindow').innerHTML = '';
-            } else {
-                document.getElementById("quantityError").innerHTML = "Cannot remove the quantity. (" + quantity + " - " + inputQ + " = " + (quantity - inputQ) + ", <" + 0 + ")";
-            };
-        });
-
-    };
 
 </script>
 

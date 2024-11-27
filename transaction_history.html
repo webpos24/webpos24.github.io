@@ -122,107 +122,92 @@
 <!-- Import Menu Bar -->
 <script type="text/javascript" src="menu.js"></script>
 
-<script>
-
-    var loading;
-    var listTop = '0000001';
-
-    //Auto refresh staff status
-    var currentdate = new Date();
-    var date = currentdate.getFullYear() + "/"
-        + (currentdate.getMonth() + 1) + "/"
-        + currentdate.getDate();
-
-    //assign default month and day
-    document.getElementById("date").value = date.replaceAll('/', '-');
-
-    //Start up
-    window.onload = function () {
-        //Get data from session storage
-        var user = sessionStorage.getItem("user");
-        if (user) {
-            document.getElementById("Account").innerHTML = user;
-
-            // Loading animation
-            var rotate = 0;
-            loading = setInterval(() => {
-                document.getElementById("loading").style.transform = ("translate(-50%, -50%) rotate(" + rotate + "deg)");
-                rotate += 10;
-                if (rotate > 360) {
-                    rotate = 0;
-                }
-            }, 10);
-
-            setTimeout(() => {
-                clearInterval(loading);
-            }, 3000);
-
-        } else {
-
-            //session outdated
-            var info = "Session outdated.\n Please login again.";
-            document.body.innerHTML += `
-                <div style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
-                    <div style="font-size: 30px; white-space: pre-line; text-align: center; position: absolute; top: 50%; left: 50%; padding: 10px 30px 10px 30px; transform: translate(-50%, -50%); border: 1px solid rgba(0, 0, 0, 0.6); background-color: rgba(255, 255, 255, 0.6);"
-                    >${info}
-                        <button type="button" onclick="window.location.href = 'login.html'">Return to Login</button>
-                    </div>
-                </div>
-            `;
-        }
-
-    }
-
-</script>
-
 <script type="module">
 
+    //Import function
+    import { set, get, ref, update, onValue, increment } from "./firebase_config.js";
+    //Import constant variables
+    import { credential, database } from "./firebase_config.js";
 
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-
-    //createUserWithEmailAndPassword
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-    import { getDatabase, get, set, ref, child, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDmYAF5VJ0RntbtrfJ_4Sk9syHYGKev4nw",
-        authDomain: "webpos24-e0eb3.firebaseapp.com",
-        databaseURL: "https://webpos24-e0eb3-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "webpos24-e0eb3",
-        storageBucket: "webpos24-e0eb3.firebasestorage.app",
-        messagingSenderId: "544188889423",
-        appId: "1:544188889423:web:9d7c59723cde33292bad3a"
+    //Transaction class
+    class Transaction {
+        constructor(orderList, id, totalPrice, date, time, staffCode, staffName, refund) {
+            this.orderList = orderList;
+            this.id = id;
+            this.totalPrice = totalPrice;
+            this.date = date;
+            this.time = time;
+            this.staffCode = staffCode;
+            this.staffName = staffName;
+            this.refund = refund;
+        };
+        //Transform to readable text
+        transformRead() {
+            var displayList = "";
+            for (let index = 0; index < this.orderList.length; index++) {
+                displayList += `
+                    ${index + 1}.
+                    <span style="background-color: cornflowerblue; color: white; font-weight: bold; padding: 2px 6px 2px 6px; border-radius: 5px;">${this.orderList[index].category}</span>
+                    <span>${this.orderList[index].name}</span>
+                    <span style="color: green;">RM${parseInt(this.orderList[index].price).toFixed(2)}</span>
+                    <br>
+                `;
+            };
+            return displayList;
+        };
+        //Refund button
+        refundFunc() {
+            var style = "", refundButton = "", refundClass = "";
+            //Detect refunded transaction
+            if (this.refund == true) {
+                style = "color: grey; background-color: lightgray;";
+            } else {
+                refundClass = "refundButton";
+                refundButton = "<img src=\"png/refund_small.png\" style=\"width: 18px;\">";
+                setTimeout(() => {
+                    //Refund function with confirmation
+                    document.getElementById("refund_" + this.id).addEventListener('click', () => {
+                        var message = "Do you confirm to refund for order ID:<br>" + this.id + "?";
+                        //Confirmation for remove item
+                        confirmation(message, () => {
+                            //Perform refund
+                            update(ref(database, 'sale/' + this.date + '/' + this.id), {
+                                refund: true
+                            })
+                            //Remove confirmation window
+                            document.getElementById("confirmation").remove();
+                            //Refresh
+                            sortOrder();
+                        });
+                    });
+                }, 1);
+            };
+            return [style, refundClass, refundButton];
+        };
+        //Display transaction in row
+        display() {
+            var refundElement = this.refundFunc();
+            //Update List function
+            document.getElementById('listOrder').parentElement.style.setProperty("border-bottom", "1px solid #dadada", "");
+            document.getElementById('listOrder').innerHTML += `
+                <tr class="orderBorder" style="${refundElement[0]}">
+                    <td>${this.id}</td>
+                    <td>${this.date}</td>
+                    <td>${this.time}</td>
+                    <td style="text-align: left; line-height: 1.4; font-size: 18px;">${this.transformRead()}</td>
+                    <td>${this.totalPrice.toFixed(2)}</td>
+                    <td>${this.staffName}<br>No.${this.staffCode}</td>
+                    <td id="refund_${this.id}" class="${refundElement[1]}">${refundElement[2]}</td>
+                <tr>
+            `;
+        };
     };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const database = getDatabase(app);
+    //Get current date
+    var currentdate = new Date();
+    //assign default month and day
+    document.getElementById("date").value = currentdate.getFullYear() + "-" + (currentdate.getMonth() + 1) + "-" + currentdate.getDate();
 
-    // If logged out somewhere
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // User is signed in, see docs for a list of available properties
-            // https://firebase.google.com/docs/reference/js/auth.user
-            console.log("[User Credential] " + user.uid);
-
-            // Remove loading animation
-            clearInterval(loading);
-            document.getElementById("loading").remove();
-
-            // ...
-        } else {
-            // User is signed out
-            // ...
-            alert("Oh no, you have been signed out.");
-            window.location.href = "login.html"
-        }
-    });
 
     //Default list order sorting
     sortOrder();
@@ -232,6 +217,7 @@
         sortOrder();
     });
 
+    //Display the transaction list in table
     function sortOrder() {
 
         //Retrieve input date sorting value
@@ -239,7 +225,6 @@
         var sDate = parseInt(datePart[0]) + "/" + parseInt(datePart[1]) + "/" + parseInt(datePart[2]);
 
         var resetList = false;
-        var index;
 
         //Get list of order
         onValue(ref(database, 'sale/' + sDate), (snapshot) => {
@@ -262,96 +247,32 @@
                     resetList = true;
                 }
 
-                index = 0;
                 //Order list
                 snapshot.forEach((childSnapshot) => {
 
                     //Retrieve orderCart
-                    var orderCart = JSON.parse(childSnapshot.val().orderList);
+                    var orderCart = childSnapshot.val().orderList;
                     var cartList = "";
                     var refund = "";
                     var refundButton = "";
                     var refundClass = "";
 
-                    //Transform to readable order cart
-                    for (let index = 0; index < orderCart.length; index++) {
-                        cartList += `
-                            ${index + 1}.
-                            <span style="background-color: cornflowerblue; color: white; font-weight: bold; padding: 2px 6px 2px 6px; border-radius: 5px;">${orderCart[index][2]}</span>
-                            <span>${orderCart[index][0]}</span>
-                            <span style="color: green;">RM${orderCart[index][1].toFixed(2)}</span>
-                            <br>
-                        `;
+                    //Initialize transaction
+                    const transaction = new Transaction(childSnapshot.val().orderList, childSnapshot.key, childSnapshot.val().totalPrice, sDate, childSnapshot.val().time, childSnapshot.val().staffCode, childSnapshot.val().staffName, childSnapshot.val().refund);
+
+                    //Display each transaction in row
+                    transaction.display();
+
+                    //Remove the bottom line when window is inside height
+                    if (document.getElementById("listOrder").parentElement.clientHeight > document.getElementById("listOrder").clientHeight) {
+                        document.getElementById("listOrder").parentElement.style.borderBottom = "";
                     };
-
-                    //Detect refunded transaction
-                    if (childSnapshot.val().refund == true) {
-                        refund = "color: grey; background-color: lightgray;";
-                    } else {
-                        refundButton = "<img src=\"png/refund_small.png\" style=\"width: 18px;\">";
-                        refundClass = "refundButton";
-                        setTimeout(() => {
-                            //Refund function with confirmation
-                            document.getElementById("refund_" + childSnapshot.key).addEventListener('click', (e) => {
-
-                                //Confirm Refund Button
-                                const confirmButton = document.createElement("button");
-                                confirmButton.innerHTML = "CONFIRM";
-                                confirmButton.type = "button";
-                                confirmButton.className = "confirmButton";
-                                confirmButton.addEventListener('click', () => {
-                                    //Perform refund
-                                    update(ref(database, 'sale/' + sDate + '/' + childSnapshot.key), {
-                                        refund: true
-                                    })
-                                    //Remove confirmation window
-                                    document.getElementById("confirmation").remove();
-                                    //Refresh
-                                    sortOrder();
-                                });
-
-                                //Confirmation
-                                var info = "Do you confirm to refund for order ID: " + childSnapshot.key + "?";
-
-                                const confirmation = document.createElement("div");
-                                confirmation.innerHTML = `
-                                    <div id="confirmation" style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
-                                        <div style="font-size: 30px; text-align: center; position: absolute; top: 50%; left: 50%; padding: 30px; transform: translate(-50%, -50%); border-radius: 10px; background-color: #f1f1f1; box-shadow: 5px 5px 10px lightgray;"
-                                        >${info}
-                                            <div>
-                                                <button type="button" class="confirmButton" onclick="document.getElementById('confirmation').remove();">CANCEL</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `;
-
-                                confirmation.children[0].children[0].children[0].appendChild(confirmButton);
-
-                                document.getElementById("detail").appendChild(confirmation);
-
-                            });
-                        }, 1);
-                    };
-
-                    //Update List function, private functon
-                    document.getElementById('listOrder').parentElement.style.setProperty("border-bottom", "1px solid #dadada", "");
-                    document.getElementById('listOrder').innerHTML += `
-                        <tr class="orderBorder" style="${refund}">
-                            <td>${childSnapshot.key}</td>
-                            <td>${childSnapshot.ref._path.pieces_[1] + '/' + childSnapshot.ref._path.pieces_[2] + '/' + childSnapshot.ref._path.pieces_[3]}</td>
-                            <td>${childSnapshot.val().time}</td>
-                            <td style="text-align: left; line-height: 1.4; font-size: 18px;">${cartList}</td>
-                            <td>${childSnapshot.val().totalPrice.toFixed(2)}</td>
-                            <td>${childSnapshot.val().staffName}<br>No.${childSnapshot.val().staffCode}</td>
-                            <td id="refund_${childSnapshot.key}" class="${refundClass}">${refundButton}</td>
-                        <tr>
-                    `;
-                    index++;
 
                 });
 
             } else {
-                console.log('Data is ended.');
+
+                //If no data retrieved
                 var chosenDate = document.getElementById("date").value;
                 if (chosenDate == "") {
                     chosenDate = "Invalid Date";
@@ -364,13 +285,40 @@
                         </div>
                     </div>
                 `;
-            }
+
+            };
 
         }, {
             onlyOnce: true
         });
 
-    }
+    };
+
+    // Confirmation function
+    function confirmation(itemMessage, action) {
+        //Confirm Refund Button
+        const confirmButton = document.createElement("button");
+        confirmButton.innerHTML = "CONFIRM";
+        confirmButton.type = "button";
+        confirmButton.className = "confirmButton";
+        confirmButton.addEventListener('click', action);
+
+        const confirmation = document.createElement("div");
+        confirmation.innerHTML = `
+            <div id="confirmation" style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 3;">
+                <div style="font-size: 30px; text-align: center; position: absolute; top: 50%; left: 50%; padding: 30px; transform: translate(-50%, -50%); border-radius: 10px; background-color: #f1f1f1; box-shadow: 5px 5px 10px lightgray;"
+                >${itemMessage}
+                    <div>
+                        <button type="button" class="confirmButton" onclick="document.getElementById('confirmation').remove();">CANCEL</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        confirmation.children[0].children[0].children[1].appendChild(confirmButton);
+
+        document.getElementById("detail").appendChild(confirmation);
+    };
 
 </script>
 

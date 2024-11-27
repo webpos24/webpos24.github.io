@@ -39,7 +39,7 @@
     // Retrieve order cart
 	const decodedURL = decodeURIComponent(window.location.href);
 	var data = decodedURL.split("?data=");
-    var cart = JSON.parse(JSON.parse(data[3]).orderList);
+    var orderCart = JSON.parse(data[3]);
 
 	// Insert date and time into HTML
 	document.getElementById("datetime").innerHTML = data[1];
@@ -48,18 +48,18 @@
 	document.getElementById("no").innerHTML = data[2];
 
 	// Get cart items
-    for (let index = 0; index < cart.length; index++) {
-        const element = cart[index];
+    for (let index = 0; index < orderCart.cart.length; index++) {
+        const element = orderCart.cart[index];
         document.getElementById("list").innerHTML += `
         	<div>${index+1}.</div>
-            <div style="text-align: left;">${cart[index][0]} - ${cart[index][2]}</div>
+            <div style="text-align: left;">${element.name} - ${element.category}</div>
             </div>
-            <div style="align-self: flex-end;">${cart[index][1].toFixed(2)}</div>
+            <div style="align-self: flex-end;">${element.price.toFixed(2)}</div>
         `;
     };
 
     document.getElementById("total").innerHTML += `
-        <div style="grid-column: span 2; text-align: right;">Total: RM</div><div>${JSON.parse(data[3]).totalPrice.toFixed(2)}</div>
+        <div style="grid-column: span 2; text-align: right;">Total: RM</div><div>${orderCart.totalPrice.toFixed(2)}</div>
     `;
 
     window.print();

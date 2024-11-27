@@ -139,96 +139,168 @@
 <!-- Import Menu Bar -->
 <script type="text/javascript" src="menu.js"></script>
 
-<script>
+<script type="module">
 
-    var loading;
+    //Import function
+    import { set, get, ref, update, onValue, increment, push, remove } from "./firebase_config.js";
+    //Import constant variables
+    import { credential, database } from "./firebase_config.js";
 
-    //Start up
-    window.onload = function () {
-        //Get data from session storage
-        var user = sessionStorage.getItem("user");
-        if (user) {
-            document.getElementById("Account").innerHTML = user;
+    class Category {
+        constructor(name, key) {
+            this.name = name;
+            this.key = key;
+        };
+        createRow() {
+            document.getElementById("services").innerHTML += `
+                <tr class="serviceBorder">
+                    <td id="removeCategory_${this.key}" class="serviceBorder updateButton" style="min-width: 40px;">
+                        <img src="png/cancel.png" draggable="false" style="height: 19px; vertical-align: middle;" />
+                    </td>
+                    <td class="serviceBorder"
+                        style="text-align: center; font-size: 20px; max-width: 40px; min-width: 158px; outline: none;">
+                        <input type="text" id="editCategoryName_${this.key}" class="inputBox" value="${this.name}">
+                    </td>
+                    <td colspan="4" style="padding: 0;">
+                        <table id="service_${this.key}" style="border-collapse: collapse; margin: -1px; width: calc(100% + 2px);">
+                        </table>
+                    </td>
+                <tr>
+            `;
+        };
 
-            // Loading animation
-            var rotate = 0;
-            loading = setInterval(() => {
-                document.getElementById("loading").style.transform = ("translate(-50%, -50%) rotate(" + rotate + "deg)");
-                rotate += 10;
-                if (rotate > 360) {
-                    rotate = 0;
-                }
-            }, 10);
+        //Set event listener for category modification and removal
+        eventListener() {
+            setTimeout(() => {
+                // Remove category
+                document.getElementById("removeCategory_" + this.key).addEventListener('click', () => {
+                    var message = "Do you confirm to remove the category:<br>" + this.name + "?";
+                    //Confirmation for remove item
+                    confirmation(message, () => {
+                        //Perform remove category
+                        remove(ref(database, 'services/categories/' + this.key));
+                        //Remove confirmation window
+                        document.getElementById("confirmation").remove();
+                    });
+                });
+                // Edit category name
+                document.getElementById("editCategoryName_" + this.key).addEventListener('focusout', (e) => {
+                    set(ref(database, 'services/categories/' + this.key + '/name'),
+                        document.getElementById("editCategoryName_" + this.key).value
+                    );
+                });
+            }, 1);
+        };
+
+        //Button click to append item
+        addItem() {
+            document.getElementById("service_" + this.key).innerHTML += `
+                <tr class="serviceBorder">
+                    <td colspan="4" style="padding: 0px;">
+                        <div id="addItem_${this.key}" class="updateButton" style="color: gray; padding: 6px;">+ ITEM</div>
+                    </td>
+                </tr>
+            `;
 
             setTimeout(() => {
-                clearInterval(loading);
-            }, 3000);
 
-        } else {
+                // Add new item
+                document.getElementById("addItem_" + this.key).addEventListener('click', (e) => {
+                    push(ref(database, 'services/categories/' + this.key + '/items/'), {
+                        name: "New Item",
+                        price: 0,
+                        quantity: 0
+                    });
+                    document.getElementById("removeCategory_" + this.key).scrollIntoView({ behavior: "smooth" });
+                });
 
-            //session outdated
-            var info = "Session outdated.\n Please login again.";
-            document.body.innerHTML += `
-            <div style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
-                <div style="font-size: 30px; white-space: pre-line; text-align: center; position: absolute; top: 50%; left: 50%; padding: 10px 30px 10px 30px; transform: translate(-50%, -50%); border: 1px solid rgba(0, 0, 0, 0.6); background-color: rgba(255, 255, 255, 0.6);"
-                >${info}
-                    <button type="button" onclick="window.location.href = 'staffcode.html'">Return to Login</button>
+            }, 1);
+        };
+    };
+
+    // Item Class
+    class Item {
+        constructor(name, key, price, quantity, category) {
+            this.name = name;
+            this.key = key;
+            this.price = price;
+            this.quantity = quantity;
+            this.category = category;
+        };
+
+        createRow(index) {
+            //Set to Price at the third <td>
+            document.getElementById("service_" + this.category.key).innerHTML += `
+                <tr class="serviceBorder">
+                    <td class="serviceBorder" style="max-width: 40px; min-width: 40px;">${index + 1}</td>
+                    <td class="serviceBorder" style="text-align: center; font-size: 20px; max-width: 40px; min-width: 198px; outline: none;">
+                        <input type="text" id="editItemName_${this.key}" class="inputBox" value="${this.name}">
+                    </td>
+                    <td class="serviceBorder" style="text-align: center; font-size: 20px; max-width: 40px; min-width: 98px; outline: none;">
+                        <input type="number" id="editItemPrice_${this.key}" class="inputBox" style="text-align: right;" value="${this.price.toFixed(2)}">
+                    </td>
+                    <td id="removeItem_${this.key}" class="serviceBorder updateButton" style="min-width: 40px;">
+                        <img src="png/cancel.png" draggable="false" style="height: 19px; vertical-align: middle;" />
+                    </td>
+                </tr>
+            `;
+        };
+
+        eventListener() {
+            setTimeout(() => {
+                // Remove item
+                document.getElementById("removeItem_" + this.key).addEventListener('click', (e) => {
+                    var message = "Do you confirm to remove the item:<br>[" + this.category.name + "] " + this.name + "?";
+                    //Confirmation for remove item
+                    confirmation(message, () => {
+                        //Perform remove item
+                        remove(ref(database, 'services/categories/' + this.category.key + '/items/' + this.key));
+                        //Remove confirmation window
+                        document.getElementById("confirmation").remove();
+                    });
+                });
+                // Edit item name
+                document.getElementById("editItemName_" + this.key).addEventListener('focusout', (e) => {
+                    set(ref(database, 'services/categories/' + this.category.key + '/items/' + this.key + '/name'),
+                        document.getElementById("editItemName_" + this.key).value
+                    );
+                });
+                // Edit item price
+                document.getElementById("editItemPrice_" + this.key).addEventListener('focusout', (e) => {
+                    set(ref(database, 'services/categories/' + this.category.key + '/items/' + this.key + '/price'),
+                        Number(document.getElementById("editItemPrice_" + this.key).value)
+                    );
+                });
+            }, 1);
+        };
+
+    };
+
+    // Confirmation function
+    function confirmation(itemMessage, action) {
+        //Confirm Refund Button
+        const confirmButton = document.createElement("button");
+        confirmButton.innerHTML = "CONFIRM";
+        confirmButton.type = "button";
+        confirmButton.className = "confirmButton";
+        confirmButton.addEventListener('click', action);
+
+        const confirmation = document.createElement("div");
+        confirmation.innerHTML = `
+            <div id="confirmation" style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 3;">
+                <div style="font-size: 30px; text-align: center; position: absolute; top: 50%; left: 50%; padding: 30px; transform: translate(-50%, -50%); border-radius: 10px; background-color: #f1f1f1; box-shadow: 5px 5px 10px lightgray;"
+                >${itemMessage}
+                    <div>
+                        <button type="button" class="confirmButton" onclick="document.getElementById('confirmation').remove();">CANCEL</button>
+                    </div>
                 </div>
             </div>
         `;
 
-        }
+        confirmation.children[0].children[0].children[1].appendChild(confirmButton);
 
+        document.getElementById("detail").appendChild(confirmation);
     };
-
-</script>
-
-<script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-
-    //createUserWithEmailAndPassword
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-    import { getDatabase, set, ref, update, onValue, push, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDmYAF5VJ0RntbtrfJ_4Sk9syHYGKev4nw",
-        authDomain: "webpos24-e0eb3.firebaseapp.com",
-        databaseURL: "https://webpos24-e0eb3-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "webpos24-e0eb3",
-        storageBucket: "webpos24-e0eb3.firebasestorage.app",
-        messagingSenderId: "544188889423",
-        appId: "1:544188889423:web:9d7c59723cde33292bad3a"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const database = getDatabase(app);
-
-    // If logged out somewhere
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // User is signed in, see docs for a list of available properties
-            // https://firebase.google.com/docs/reference/js/auth.user
-            console.log("[User Credential] " + user.uid);
-
-            // Remove loading animation
-            clearInterval(loading);
-            document.getElementById("loading").remove();
-
-            // ...
-        } else {
-            // User is signed out
-            // ...
-            alert("Oh no, you have been signed out.");
-            window.location.href = "login.html"
-        }
-    });
 
     // Modify Inventory Table
     onValue(ref(database, 'services/categories'), (snapshot) => {
@@ -263,180 +335,29 @@
             //CATEGORY - categorySnapshot.val().name
             snapshot.forEach(function (categorySnapshot) {
 
-                document.getElementById("services").innerHTML += `
-                    <tr class="serviceBorder">
-                        <td id="removeCategory_${categorySnapshot.key}" class="serviceBorder updateButton" style="min-width: 40px;">
-                            <img src="png/cancel.png" draggable="false" style="height: 19px; vertical-align: middle;" />
-                        </td>
-                        <td class="serviceBorder"
-                            style="text-align: center; font-size: 20px; max-width: 40px; min-width: 158px; outline: none;">
-                            <input type="text" id="editCategoryName_${categorySnapshot.key}" class="inputBox" value="${categorySnapshot.val().name}">
-                        </td>
-                        <td colspan="4" style="padding: 0;">
-                            <table id="service_${categorySnapshot.key}" style="border-collapse: collapse; margin: -1px; width: calc(100% + 2px);">
-                            </table>
-                        </td>
-                    <tr>
-                `;
-
-                setTimeout(() => {
-
-                    // Remove category
-                    document.getElementById("removeCategory_" + categorySnapshot.key).addEventListener('click', (e) => {
-                        //Confirmation
-                        //Confirm Refund Button
-                        const confirmButton = document.createElement("button");
-                        confirmButton.innerHTML = "CONFIRM";
-                        confirmButton.type = "button";
-                        confirmButton.className = "confirmButton";
-                        confirmButton.addEventListener('click', () => {
-                            //Perform refund
-                            console.log("Remove Category");
-                            remove(ref(database, 'services/categories/' + categorySnapshot.key));
-                            //Remove confirmation window
-                            document.getElementById("confirmation").remove();
-                            //Refresh
-                            sortOrder();
-                        });
-
-                        //Confirmation
-                        var info = "Do you confirm to remove the category: " + categorySnapshot.val().name + "?";
-
-                        const confirmation = document.createElement("div");
-                        confirmation.innerHTML = `
-                            <div id="confirmation" style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
-                                <div style="font-size: 30px; text-align: center; position: absolute; top: 50%; left: 50%; padding: 30px; transform: translate(-50%, -50%); border-radius: 10px; background-color: #f1f1f1; box-shadow: 5px 5px 10px lightgray;"
-                                >${info}
-                                    <div>
-                                        <button type="button" class="confirmButton" onclick="document.getElementById('confirmation').remove();">CANCEL</button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-
-                        confirmation.children[0].children[0].children[0].appendChild(confirmButton);
-
-                        document.getElementById("detail").appendChild(confirmation);
-                    });
-
-                    // Edit category name
-                    document.getElementById("editCategoryName_" + categorySnapshot.key).addEventListener('focusout', (e) => {
-                        console.log("Edit Category ", document.getElementById("editCategoryName_" + categorySnapshot.key).value);
-                        set(ref(database, 'services/categories/' + categorySnapshot.key + '/name'),
-                            document.getElementById("editCategoryName_" + categorySnapshot.key).value
-                        );
-                    });
-
-                }, 1);
+                const category = new Category(categorySnapshot.val().name, categorySnapshot.key);
+                category.createRow();
+                category.eventListener();
 
                 //Index for counting item quantity
                 var index = 0;
 
                 //If the category has child
                 if (categorySnapshot.child("items").val() != "") {
+
                     //ITEM - childSnapshot.val().name, PRICE - childSnapshot.val().price
                     categorySnapshot.child("items").forEach(function (childSnapshot) {
 
-                        //Set to Price at the third <td>
-                        document.getElementById("service_" + categorySnapshot.key).innerHTML += `
-                            <tr class="serviceBorder">
-                                <td class="serviceBorder" style="max-width: 40px; min-width: 40px;">${index + 1}</td>
-                                <td class="serviceBorder" style="text-align: center; font-size: 20px; max-width: 40px; min-width: 198px; outline: none;">
-                                    <input type="text" id="editItemName_${childSnapshot.key}" class="inputBox" value="${childSnapshot.val().name}">
-                                </td>
-                                <td class="serviceBorder" style="text-align: center; font-size: 20px; max-width: 40px; min-width: 98px; outline: none;">
-                                    <input type="number" id="editItemPrice_${childSnapshot.key}" class="inputBox" style="text-align: right;" value="${childSnapshot.val().price.toFixed(2)}">
-                                </td>
-                                <td id="removeItem_${childSnapshot.key}" class="serviceBorder updateButton" style="min-width: 40px;">
-                                    <img src="png/cancel.png" draggable="false" style="height: 19px; vertical-align: middle;" />
-                                </td>
-                            </tr>
-                        `;
-
-                        setTimeout(() => {
-
-                            // Remove item
-                            document.getElementById("removeItem_" + childSnapshot.key).addEventListener('click', (e) => {
-                                //Confirmation
-                                //Confirm Refund Button
-                                const confirmButton = document.createElement("button");
-                                confirmButton.innerHTML = "CONFIRM";
-                                confirmButton.type = "button";
-                                confirmButton.className = "confirmButton";
-                                confirmButton.addEventListener('click', () => {
-                                    //Perform refund
-                                    console.log("Remove Item");
-                                    remove(ref(database, 'services/categories/' + categorySnapshot.key + '/items/' + childSnapshot.key));
-                                    //Remove confirmation window
-                                    document.getElementById("confirmation").remove();
-                                    //Refresh
-                                    sortOrder();
-                                });
-
-                                //Confirmation
-                                var info = "Do you confirm to remove the item: [" + categorySnapshot.val().name + "] " + childSnapshot.val().name + "?";
-
-                                const confirmation = document.createElement("div");
-                                confirmation.innerHTML = `
-                                    <div id="confirmation" style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
-                                        <div style="font-size: 30px; text-align: center; position: absolute; top: 50%; left: 50%; padding: 30px; transform: translate(-50%, -50%); border-radius: 10px; background-color: #f1f1f1; box-shadow: 5px 5px 10px lightgray;"
-                                        >${info}
-                                            <div>
-                                                <button type="button" class="confirmButton" onclick="document.getElementById('confirmation').remove();">CANCEL</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `;
-
-                                confirmation.children[0].children[0].children[0].appendChild(confirmButton);
-
-                                document.getElementById("detail").appendChild(confirmation);
-
-                            });
-
-                            // Edit item name
-                            document.getElementById("editItemName_" + childSnapshot.key).addEventListener('focusout', (e) => {
-                                set(ref(database, 'services/categories/' + categorySnapshot.key + '/items/' + childSnapshot.key + '/name'),
-                                    document.getElementById("editItemName_" + childSnapshot.key).value
-                                );
-                            });
-
-                            // Edit item price
-                            document.getElementById("editItemPrice_" + childSnapshot.key).addEventListener('focusout', (e) => {
-                                set(ref(database, 'services/categories/' + categorySnapshot.key + '/items/' + childSnapshot.key + '/price'),
-                                    Number(document.getElementById("editItemPrice_" + childSnapshot.key).value)
-                                );
-                            });
-
-                        }, 1);
+                        const item = new Item(childSnapshot.val().name, childSnapshot.key, childSnapshot.val().price, null, category);
+                        item.createRow(index);
+                        item.eventListener();
 
                         index++;
                     });
                 };
 
-                //Click to append item
-                document.getElementById("service_" + categorySnapshot.key).innerHTML += `
-                    <tr class="serviceBorder">
-                        <td colspan="4" style="padding: 0px;">
-                            <div id="addItem_${categorySnapshot.key}" class="updateButton" style="color: gray; padding: 6px;">+ ITEM</div>
-                        </td>
-                    </tr>
-                `;
-
-                setTimeout(() => {
-
-                    // Add new item
-                    document.getElementById("addItem_" + categorySnapshot.key).addEventListener('click', (e) => {
-                        console.log("Add New Item");
-                        push(ref(database, 'services/categories/' + categorySnapshot.key + '/items/'), {
-                            name: "New Item",
-                            price: 0,
-                            quantity: 0
-                        });
-                        document.getElementById("removeCategory_" + categorySnapshot.key).scrollIntoView({ behavior: "smooth" });
-                    });
-
-                }, 1);
+                //Append button to add item in the category
+                category.addItem();
 
             });
 
@@ -462,6 +383,11 @@
                 behavior: "smooth"
             });
         });
+
+        //Remove the bottom line when window is inside height
+        if (document.getElementById("services").parentElement.clientHeight > document.getElementById("services").clientHeight) {
+            document.getElementById("services").parentElement.style.borderBottom = "";
+        };
 
     });
 

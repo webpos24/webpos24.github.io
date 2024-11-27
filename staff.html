@@ -114,96 +114,88 @@
 <!-- Import Menu Bar -->
 <script type="text/javascript" src="menu.js"></script>
 
-<script>
-
-    var loading;
-
-    //Start up
-    window.onload = function () {
-        //Get data from session storage
-        var user = sessionStorage.getItem("user");
-        if (user) {
-            document.getElementById("Account").innerHTML = user;
-
-            // Loading animation
-            var rotate = 0;
-            loading = setInterval(() => {
-                document.getElementById("loading").style.transform = ("translate(-50%, -50%) rotate(" + rotate + "deg)");
-                rotate += 10;
-                if (rotate > 360) {
-                    rotate = 0;
-                }
-            }, 10);
-
-            setTimeout(() => {
-                clearInterval(loading);
-            }, 3000);
-
-        } else {
-
-            //session outdated
-            var info = "Session outdated.\n Please login again.";
-            document.body.innerHTML += `
-            <div style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
-                <div style="font-size: 30px; white-space: pre-line; text-align: center; position: absolute; top: 50%; left: 50%; padding: 10px 30px 10px 30px; transform: translate(-50%, -50%); border: 1px solid rgba(0, 0, 0, 0.6); background-color: rgba(255, 255, 255, 0.6);"
-                >${info}
-                    <button type="button" onclick="window.location.href = 'staffcode.html'">Return to Login</button>
-                </div>
-            </div>
-        `;
-
-        }
-
-    };
-
-</script>
-
 <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
 
-    //createUserWithEmailAndPassword
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-    import { getDatabase, set, ref, update, onValue, push, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+    //Import function
+    import { set, get, ref, update, onValue, increment, push, remove } from "./firebase_config.js";
+    //Import constant variables
+    import { credential, database } from "./firebase_config.js";
 
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
+    class Staff {
+        constructor(code, name, role) {
+            this.code = code;
+            this.name = name;
+            this.role = role;
+        };
+        //Set event listener for staff modification and removal
+        eventListener() {
+            setTimeout(() => {
+                // Edit staff name
+                document.getElementById("editStaffName_" + this.code).addEventListener('focusout', (e) => {
+                    set(ref(database, 'staffcode/' + this.code + '/name'),
+                        document.getElementById("editStaffName_" + this.code).value
+                    );
+                });
+                // Edit staff role
+                document.getElementById("editStaffRole_" + this.code).addEventListener('change', (e) => {
+                    set(ref(database, 'staffcode/' + this.code + '/role'),
+                        document.getElementById("editStaffRole_" + this.code).value
+                    );
+                });
+                // Remove category
+                document.getElementById("removeStaff_" + this.code).addEventListener('click', (e) => {
+                    remove(ref(database, 'staffcode/' + this.code));
+                });
+            }, 1);
+        };
+        //Display staff with information
+        display(index) {
+            var selected = ["", ""];
+            if (this.role == "staff") {
+                selected[0] = "selected";
+            } else if (this.role == "admin") {
+                selected[1] = "selected";
+            };
 
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDmYAF5VJ0RntbtrfJ_4Sk9syHYGKev4nw",
-        authDomain: "webpos24-e0eb3.firebaseapp.com",
-        databaseURL: "https://webpos24-e0eb3-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "webpos24-e0eb3",
-        storageBucket: "webpos24-e0eb3.firebasestorage.app",
-        messagingSenderId: "544188889423",
-        appId: "1:544188889423:web:9d7c59723cde33292bad3a"
+            document.getElementById("services").innerHTML += `
+                <tr class="serviceBorder">
+                    <td class="serviceBorder">${index + 1}</td>
+                    <td class="serviceBorder">
+                        <input type="text" id="editStaffName_${this.code}" class="inputBox" value="${this.name}">
+                    </td>
+                    <td class="serviceBorder">${this.code}</td>
+                    <td class="serviceBorder">
+                        <select id="editStaffRole_${this.code}" class="inputBox">
+                            <option value="staff" ${selected[0]}>Staff</option>
+                            <option value="admin" ${selected[1]}>Admin</option>
+                        </select>
+                    </td>
+                    <td id="removeStaff_${this.code}" class="serviceBorder updateButton">
+                        <img src="png/cancel.png" draggable="false" style="height: 19px; vertical-align: middle;" />
+                    </td>
+                <tr>
+            `;
+        };
     };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const database = getDatabase(app);
+    function genStaffCode() {
+        //Generate a new random staff code
+        let newStaffCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
 
-    // If logged out somewhere
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // User is signed in, see docs for a list of available properties
-            // https://firebase.google.com/docs/reference/js/auth.user
-            console.log("[User Credential] " + user.uid);
+        //Validate if the new generated code is not using
+        onValue(ref(database, 'staffcode'), (snapshot) => {
+            snapshot.forEach(function (code) {
+                if (newStaffCode == code.key) {
+                    console.log("Repeated: ", newStaffCode);
+                    newStaffCode = genStaffCode();
+                };
+            });
+        }, {
+            onlyOnce: true
+        });
 
-            // Remove loading animation
-            clearInterval(loading);
-            document.getElementById("loading").remove();
-
-            // ...
-        } else {
-            // User is signed out
-            // ...
-            alert("Oh no, you have been signed out.");
-            window.location.href = "login.html"
-        }
-    });
+        return newStaffCode;
+    };
 
     // Modify Inventory Table
     onValue(ref(database, 'staffcode'), (snapshot) => {
@@ -229,64 +221,20 @@
             <tr>
         `;
 
+        //If there is at least one staff
         if (snapshot.exists()) {
 
-            //Index for counting item quantity
+            //Index for counting staff
             var index = 0;
 
             //Staff code, loop each staff infomation
-            snapshot.forEach(function (staff) {
+            snapshot.forEach(function (data) {
 
-                var selected = ["", ""];
-                if (staff.val().role == "staff") {
-                    selected[0] = "selected";
-                } else if (staff.val().role == "admin") {
-                    selected[1] = "selected";
-                };
-                document.getElementById("services").innerHTML += `
-                    <tr class="serviceBorder">
-                        <td class="serviceBorder">${index + 1}</td>
-                        <td class="serviceBorder">
-                            <input type="text" id="editStaffName_${staff.key}" class="inputBox" value="${staff.val().name}">
-                        </td>
-                        <td class="serviceBorder">${staff.key}</td>
-                        <td class="serviceBorder">
-                            <select id="editStaffRole_${staff.key}" class="inputBox">
-                                <option value="staff" ${selected[0]}>Staff</option>
-                                <option value="admin" ${selected[1]}>Admin</option>
-                            </select>
-                        </td>
-                        <td id="removeStaff_${staff.key}" class="serviceBorder updateButton">
-                            <img src="png/cancel.png" draggable="false" style="height: 19px; vertical-align: middle;" />
-                        </td>
-                    <tr>
-                `;
+                const staff = new Staff(data.key, data.val().name, data.val().role);
 
-                setTimeout(() => {
-
-                    // Edit staff name
-                    document.getElementById("editStaffName_" + staff.key).addEventListener('focusout', (e) => {
-                        console.log("Edit Staff Name ", document.getElementById("editStaffName_" + staff.key).value);
-                        set(ref(database, 'staffcode/' + staff.key + '/name'),
-                            document.getElementById("editStaffName_" + staff.key).value
-                        );
-                    });
-
-                    // Edit staff role
-                    document.getElementById("editStaffRole_" + staff.key).addEventListener('change', (e) => {
-                        console.log("Edit Staff Name ", document.getElementById("editStaffRole_" + staff.key).value);
-                        set(ref(database, 'staffcode/' + staff.key + '/role'),
-                            document.getElementById("editStaffRole_" + staff.key).value
-                        );
-                    });
-
-                    // Remove category
-                    document.getElementById("removeStaff_" + staff.key).addEventListener('click', (e) => {
-                        console.log("Remove Staff");
-                        remove(ref(database, 'staffcode/' + staff.key));
-                    });
-
-                }, 1);
+                //Display staff in a row
+                staff.display(index);
+                staff.eventListener();
 
                 index++;
 
@@ -328,25 +276,6 @@
         };
 
     });
-
-    function genStaffCode() {
-        //Generate a new random staff code
-        let newStaffCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
-
-        //Validate if the new generated code is not using
-        onValue(ref(database, 'staffcode'), (snapshot) => {
-            snapshot.forEach(function (code) {
-                if (newStaffCode == code.key) {
-                    console.log("Repeated: ", newStaffCode);
-                    newStaffCode = genStaffCode();
-                };
-            });
-        }, {
-            onlyOnce: true
-        });
-
-        return newStaffCode;
-    };
 
 </script>
 

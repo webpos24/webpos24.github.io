@@ -139,45 +139,20 @@
 <script>
 
     // Item Factory Class
-    class ItemFactory {
-        static createItem(name, price = null, category, itemKey, catKey, quantity = null) {
-            if (price != null) {
-                return new ItemWP(name, price, category, itemKey, catKey);
-            } if (quantity != null) {
-                return new ItemWQ(name, quantity, itemKey);
-            } else {
-                return new Item(name, category, itemKey, catKey);
-            };
+    class ItemFactory { //Add price and category
+        static createItem(name, price, category, itemKey, catKey) {
+            return new Item(name, price, category, itemKey, catKey);
         };
     };
 
     // Item Class
     class Item {
-        constructor(name, category, itemKey, catKey) {
+        constructor(name, price, category, itemKey, catKey) {
             this.name = name;
+            this.price = price;
             this.category = category;
             this.itemKey = itemKey;
             this.catKey = catKey;
-        };
-
-        //Check if the item attribute is complete
-        isComplete() {
-            if (this.name != null,
-                this.category != null,
-                this.itemKey != null,
-                this.catKey != null) {
-                return true;
-            } else {
-                return false;
-            };
-        };
-    };
-
-    // Item with Price Class - Add Price
-    class ItemWP extends Item {
-        constructor(name, price, category, itemKey, catKey) {
-            super(name, category, itemKey, catKey);
-            this.price = price;
         };
 
         //Check if the item attribute is complete
@@ -231,7 +206,7 @@
         //Remove item from cart
         removeItem(index) {
 
-            var message = "Do you confirm to remove the item:<br>" + (index + 1) + ". " + this.cart[index].name + "?";
+            var message = "Do you confirm to remove the item: " + (index + 1) + ". " + this.cart[index].name + "?";
             //Confirmation for remove item
             confirmation(message, function () {
                 //Perform remove item from cart
@@ -435,7 +410,7 @@
             </div>
         `;
 
-        confirmation.children[0].children[0].children[1].appendChild(confirmButton);
+        confirmation.children[0].children[0].children[0].appendChild(confirmButton);
 
         document.getElementById("detail").appendChild(confirmation);
     };

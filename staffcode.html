@@ -71,7 +71,8 @@
         <hr>
         <div class="pin_box">
             <div style="position: absolute; right: -25px; background-color: white; height: 70px; width: 20px;"></div>
-            <input id="pin" type="number" class="pin" minlength="4" maxlength="4" pattern="[0-9]{1}" autocomplete="off">
+            <input id="pin" type="number" class="pin" autocomplete="off"
+                oninput="if (parseInt(this.value) > 9999 || this.value == '') {this.value = ''};">
             <hr class="pin_line" style="left: 11.5%;">
             <hr class="pin_line" style="left: 37.5%;">
             <hr class="pin_line" style="left: 62.5%;">
@@ -81,6 +82,7 @@
             Log In</button>
     </form>
 </body>
+
 <script>
 
     //Run general function to process user credential
@@ -89,17 +91,19 @@
         //Start up
         window.onload = function () {
             //Get data from session storage
-            var user = sessionStorage.getItem("user");
-            if (user) {
-                alertFunc(user + " is logged out.");
-                window.sessionStorage.removeItem("user");
-            }
+            if (sessionStorage.getItem("credential")) {
+                var user = JSON.parse(sessionStorage.credential).name;
+                if (user) {
+                    alertFunc(user + " is logged out.");
+                    sessionStorage.removeItem("order");
+                    sessionStorage.removeItem("credential");
+                };
+            };
         };
-
     };
 
     //Alert Function for error or false
-    function alertFunc(text, timeAdd = 0) {
+    function alertFunc(text) {
         var alertTimeout = 0;
         document.getElementById('alert').innerHTML = text;
         document.getElementById('alert').style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
@@ -113,34 +117,63 @@
                     alertTimeout = 0;
                 }
             }, 1)
-        }
-        alertTimeout = 600 + timeAdd;
+        };
+        alertTimeout = 600;
     };
 
 </script>
 
-<script type="module" src="firebase_config.js">
+<script type="module">
+
+    //Import function
+    import { set, get, ref, update, onValue } from "./firebase_config.js";
+    //Import constant variables
+    import { database } from "./firebase_config.js";
+
+    //Credential Factory - Verify the staff code
+    class CredentialFactory {
+        //Create complete credential using staff Code
+        static async createItem(staffCode) {
+            try {
+                const snapshot = await get(ref(database, 'staffcode/' + staffCode));
+                const user = snapshot.val();
+                if (user) {
+                    //Return complete credential
+                    return new Credential(staffCode, user.name, user.role);
+                } else {
+                    alertFunc("No such staff " + staffCode + ".");
+                    return null;
+                }
+            } catch (error) {
+                alertFunc("Error: ", + error.message);
+                return null;
+            };
+        };
+    };
+
+    //Credential class
+    class Credential {
+        constructor(staffCode, name, role) {
+            this.staffCode = staffCode;
+            this.name = name;
+            this.role = role;
+        };
+
+        //Login function
+        login() {
+            sessionStorage.setItem("credential", JSON.stringify(this));
+            window.location.href = "main.html";
+        };
+
+    };
 
     //Button for login function
-    loginStaff.addEventListener('click', login);
-
-    //Staff code login function
-    function login() {
-        console.log("Hi ", document.getElementById("pin").value);
-        onValue(ref(database, 'staffcode/' + document.getElementById("pin").value), (user) => {
-            if (user.val() != null) {
-                //Store user credential and create order cart
-                sessionStorage.setItem("user", user.val().name);
-                sessionStorage.setItem("staffCode", document.getElementById("pin").value);
-                sessionStorage.setItem("role", user.val().role);
-                sessionStorage.setItem("order", JSON.stringify([]));
-                //Direct to main page
-                window.location.href = "main.html";
-            } else {
-                alertFunc("No such staff.");
-            }
-        });
-    };
+    loginStaff.addEventListener('click', async () => {
+        const staff = await CredentialFactory.createItem(document.getElementById("pin").value);
+        if (staff) {
+            staff.login();
+        };
+    });
 
 </script>
 

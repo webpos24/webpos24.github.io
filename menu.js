@@ -46,11 +46,12 @@ const menu_logout = `
 
 document.getElementById("menu").outerHTML = `<div id="menu" class="menu"><div style="position: relative; transform: translateY(-50%); top: 50%;"></div></div>`;
 
-//Detect role for staff level control
-if (sessionStorage.getItem('role') == "staff") {
+var userPass = JSON.parse(sessionStorage.getItem("credential"));
+
+if (userPass.role == "staff") {
     document.getElementById("menu").children[0].innerHTML = menu_home + menu_history + menu_logout;
 };
-if (sessionStorage.getItem('role') == "admin") {
+if (userPass.role == "admin") {
     document.getElementById("menu").children[0].innerHTML = menu_home + menu_history + menu_manage + menu_modify + menu_report + menu_staff + menu_logout;
 };
 
@@ -101,17 +102,15 @@ document.getElementById("menu_" + activePage).className = "menuSlot now";
 //Logout function
 function logout() {
     //Clear session storage *temp
-    var user = sessionStorage.getItem("user");
-    if (user) {
-        sessionStorage.removeItem("user");
-        sessionStorage.setItem("order", JSON.stringify([]));
+    if (userPass != null) {
+        sessionStorage.removeItem("credential");
         window.location.href = "staffcode.html";
     }
 }
 
 // Detect phone size by comparing width and height
 if (window.innerWidth < window.innerHeight) {
-    
+
 };
 
 /* Import statement

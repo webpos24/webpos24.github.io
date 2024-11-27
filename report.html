@@ -100,7 +100,6 @@
 
 <script>
 
-    var loading;
     var reportType = "daily";
 
     //Auto refresh staff status
@@ -112,96 +111,17 @@
     //assign default year, month and day
     document.getElementById("date").value = date.replaceAll('/', '-');
 
-    //Start up
-    window.onload = function () {
-        //Get data from session storage
-        var user = sessionStorage.getItem("user");
-        if (user) {
-            document.getElementById("Account").innerHTML = user;
-
-            // Loading animation
-            var rotate = 0;
-            loading = setInterval(() => {
-                document.getElementById("loading").style.transform = ("translate(-50%, -50%) rotate(" + rotate + "deg)");
-                rotate += 10;
-                if (rotate > 360) {
-                    rotate = 0;
-                }
-            }, 10);
-
-            setTimeout(() => {
-                clearInterval(loading);
-            }, 3000);
-
-        } else {
-
-            //session outdated
-            var info = "Session outdated.\n Please login again.";
-            document.body.innerHTML += `
-                <div style="position: absolute; left: 0px; top: 0px; height: 100%; width: 100%; z-index: 1;">
-                    <div style="font-size: 30px; white-space: pre-line; text-align: center; position: absolute; top: 50%; left: 50%; padding: 10px 30px 10px 30px; transform: translate(-50%, -50%); border: 1px solid rgba(0, 0, 0, 0.6); background-color: rgba(255, 255, 255, 0.6);"
-                    >${info}
-                        <button type="button" onclick="window.location.href = 'login.html'">Return to Login</button>
-                    </div>
-                </div>
-            `;
-        }
-
-    }
-
 </script>
 
 <script type="module">
 
-
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-
-    //createUserWithEmailAndPassword
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-    import { getDatabase, get, set, ref, child, update, onValue, query, orderByChild, orderByKey, limitToFirst, limitToLast, startAt, startAfter, endBefore } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDmYAF5VJ0RntbtrfJ_4Sk9syHYGKev4nw",
-        authDomain: "webpos24-e0eb3.firebaseapp.com",
-        databaseURL: "https://webpos24-e0eb3-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "webpos24-e0eb3",
-        storageBucket: "webpos24-e0eb3.firebasestorage.app",
-        messagingSenderId: "544188889423",
-        appId: "1:544188889423:web:9d7c59723cde33292bad3a"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const database = getDatabase(app);
+    //Import function
+    import { set, get, ref, update, onValue, increment, push, remove } from "./firebase_config.js";
+    //Import constant variables
+    import { credential, database } from "./firebase_config.js";
 
     // Google charts
     google.charts.load('current', { packages: ['corechart'] });
-
-    // If logged out somewhere
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // User is signed in, see docs for a list of available properties
-            // https://firebase.google.com/docs/reference/js/auth.user
-            console.log("[User Credential] " + user.uid);
-
-            // Remove loading animation
-            clearInterval(loading);
-            document.getElementById("loading").remove();
-
-            // ...
-        } else {
-            // User is signed out
-            // ...
-            alert("Oh no, you have been signed out.");
-            window.location.href = "login.html"
-        }
-    });
 
     // Sales Data Initialization
     var salesData = [];
@@ -274,12 +194,13 @@
 
     function report() {
 
-        if (reportType == "daily") {
-            // Set Data
-            const data = google.visualization.arrayToDataTable(salesData);
+        // Set Data
+        const data = google.visualization.arrayToDataTable(salesData);
+        var options;
 
+        if (reportType == "daily") {
             // Set Options
-            const options = {
+            options = {
                 title: 'Daily Sales for ' + date.replaceAll('/', '-'),
                 hAxis: {
                     title: 'Working Hours (24-hour)',
@@ -288,18 +209,11 @@
                 vAxis: { title: 'Total of Sales (RM)' },
                 legend: 'none'
             };
-
-            // Draw
-            const chart = new google.visualization.LineChart(document.getElementById('myChart'));
-            chart.draw(data, options);
         };
 
         if (reportType == "monthly") {
-            // Set Data
-            const data = google.visualization.arrayToDataTable(salesData);
-
             // Set Options
-            const options = {
+            options = {
                 title: 'Monthly Sales for ' + date.replaceAll('/', '-').slice(0, 7),
                 hAxis: {
                     title: 'Working Dates (Day)'
@@ -307,17 +221,10 @@
                 vAxis: { title: 'Total of Sales (RM)' },
                 legend: 'none'
             };
-
-            // Draw
-            const chart = new google.visualization.LineChart(document.getElementById('myChart'));
-            chart.draw(data, options);
         };
         if (reportType == "annual") {
-            // Set Data
-            const data = google.visualization.arrayToDataTable(salesData);
-
             // Set Options
-            const options = {
+            options = {
                 title: 'Annual Sales for ' + date.replaceAll('/', '-').slice(0, 4),
                 hAxis: {
                     title: 'Working Months'
@@ -325,11 +232,11 @@
                 vAxis: { title: 'Total of Sales (RM)' },
                 legend: 'none'
             };
-
-            // Draw
-            const chart = new google.visualization.LineChart(document.getElementById('myChart'));
-            chart.draw(data, options);
         };
+
+        // Draw
+        const chart = new google.visualization.LineChart(document.getElementById('myChart'));
+        chart.draw(data, options);
 
     };
 
@@ -410,7 +317,7 @@
                 var daySales = 0;
 
                 //Get every day's sales recorded in database
-                onValue(query(ref(database, 'sale/' + sDate + "/" + sDay.key)), (snapshot) => {
+                onValue(ref(database, 'sale/' + sDate + "/" + sDay.key), (snapshot) => {
 
                     if (snapshot.exists()) {
 
