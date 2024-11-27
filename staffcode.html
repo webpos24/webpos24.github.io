@@ -83,19 +83,24 @@
 </body>
 <script>
 
-    //Start up
-    window.onload = function () {
-        //Get data from session storage
-        var user = sessionStorage.getItem("user");
-        if (user) {
-            alertFunc(user + " is logged out.");
-            window.sessionStorage.removeItem("user");
-        }
-    }
+    //Run general function to process user credential
+    onLoadGeneral();
+    function onLoadGeneral() {
+        //Start up
+        window.onload = function () {
+            //Get data from session storage
+            var user = sessionStorage.getItem("user");
+            if (user) {
+                alertFunc(user + " is logged out.");
+                window.sessionStorage.removeItem("user");
+            }
+        };
 
-    //Alert logout message
-    var alertTimeout = 0;
+    };
+
+    //Alert Function for error or false
     function alertFunc(text, timeAdd = 0) {
+        var alertTimeout = 0;
         document.getElementById('alert').innerHTML = text;
         document.getElementById('alert').style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
         if (alertTimeout <= 0) {
@@ -110,71 +115,34 @@
             }, 1)
         }
         alertTimeout = 600 + timeAdd;
-    }
+    };
 
 </script>
 
 <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
 
-    //createUserWithEmailAndPassword
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-    import { getDatabase, set, ref, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+    import * as Module from './firebase_config.js';
 
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
+    //Button for login function
+    loginStaff.addEventListener('click', login);
 
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDmYAF5VJ0RntbtrfJ_4Sk9syHYGKev4nw",
-        authDomain: "webpos24-e0eb3.firebaseapp.com",
-        databaseURL: "https://webpos24-e0eb3-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "webpos24-e0eb3",
-        storageBucket: "webpos24-e0eb3.firebasestorage.app",
-        messagingSenderId: "544188889423",
-        appId: "1:544188889423:web:9d7c59723cde33292bad3a"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const database = getDatabase(app);
-
-    // If logged out somewhere
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // User is signed in, see docs for a list of available properties
-            // https://firebase.google.com/docs/reference/js/auth.user
-            console.log("[User Credential] " + user.uid);
-
-            // ...
-        } else {
-            // User is signed out
-            // ...
-            alert("Oh no, you have been signed out.");
-            window.location.href = "login.html"
-        }
-    });
-
-    //Get Data
-    loginStaff.addEventListener('click', (e) => {
-
+    //Staff code login function
+    function login() {
+        console.log("Hi ", document.getElementById("pin").value);
         onValue(ref(database, 'staffcode/' + document.getElementById("pin").value), (user) => {
-
-            if (user != null) {
-                //Next page
+            if (user.val() != null) {
+                //Store user credential and create order cart
                 sessionStorage.setItem("user", user.val().name);
                 sessionStorage.setItem("staffCode", document.getElementById("pin").value);
                 sessionStorage.setItem("role", user.val().role);
                 sessionStorage.setItem("order", JSON.stringify([]));
+                //Direct to main page
                 window.location.href = "main.html";
             } else {
                 alertFunc("No such staff.");
             }
         });
-
-    });
+    };
 
 </script>
 
