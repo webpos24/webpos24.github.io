@@ -55,16 +55,6 @@ class Credential {
         };
     };
 
-    // //Login function
-    // login() {
-    //     this.getInfo().then(success => {
-    //         if (success) {
-    //             sessionStorage.setItem("credential", JSON.stringify(this));
-    //             window.location.href = "main.html";
-    //         };
-    //     });
-    // };
-
 };
 
 var userPass = JSON.parse(sessionStorage.getItem("credential"));

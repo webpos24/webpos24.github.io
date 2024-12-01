@@ -96,6 +96,10 @@
 
 <body>
 
+    <div id="alert"
+        style="z-index: 5; position: absolute; align-self: center; top: 30px; left: 50%; transform: translate(-50%, 0%); text-align: center; padding: 10px; color: white;">
+    </div>
+
     <div id="loading"
         style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); height: 20px; width: 20px; border: rgb(0, 0, 0, 0.6) none 10px; border-top: solid; border-radius: 20px; z-index: 1;">
     </div>
@@ -139,6 +143,22 @@
 <!-- Import Menu Bar -->
 <script type="text/javascript" src="menu.js"></script>
 
+<script>
+    //Alert Function for error or false
+    function alertFunc(text) {
+        //Display Alert
+        document.getElementById('alert').innerHTML = text;
+        document.getElementById('alert').style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+
+        //Set delay for disappear
+        setTimeout(() => {
+            document.getElementById('alert').innerHTML = '';
+            document.getElementById('alert').style.backgroundColor = 'rgba(0, 0, 0, 0)';
+        }, 5000);
+
+    };
+</script>
+
 <script type="module">
 
     //Import function
@@ -159,7 +179,7 @@
                     </td>
                     <td class="serviceBorder"
                         style="text-align: center; font-size: 20px; max-width: 40px; min-width: 158px; outline: none;">
-                        <input type="text" id="editCategoryName_${this.key}" class="inputBox" value="${this.name}">
+                        <input type="text" maxlength="255" id="editCategoryName_${this.key}" class="inputBox" value="${this.name}">
                     </td>
                     <td colspan="4" style="padding: 0;">
                         <table id="service_${this.key}" style="border-collapse: collapse; margin: -1px; width: calc(100% + 2px);">
@@ -261,15 +281,47 @@
                 });
                 // Edit item name
                 document.getElementById("editItemName_" + this.key).addEventListener('focusout', (e) => {
-                    set(ref(database, 'services/categories/' + this.category.key + '/items/' + this.key + '/name'),
-                        document.getElementById("editItemName_" + this.key).value
-                    );
+                    //Retrieve the input box name value
+                    var inputName = document.getElementById("editItemName_" + this.key).value;
+
+                    //Validation
+                    switch (true) {
+                        case inputName.length == 0:
+                            alertFunc("Invalid Name: " + inputName + " (No input)");
+                            break;
+                        case inputName.length >= 256:
+                            alertFunc("Invalid Name: " + inputName + " (Length is larger than 255)");
+                            break;
+                        case inputName.length >= 1 && inputName.length <= 255: //Do the action
+                            set(ref(database, 'services/categories/' + this.category.key + '/items/' + this.key + '/name'),
+                                document.getElementById("editItemName_" + this.key).value
+                            );
+                            break;
+                        default:
+                            break;
+                    };
                 });
                 // Edit item price
                 document.getElementById("editItemPrice_" + this.key).addEventListener('focusout', (e) => {
-                    set(ref(database, 'services/categories/' + this.category.key + '/items/' + this.key + '/price'),
-                        Number(document.getElementById("editItemPrice_" + this.key).value)
-                    );
+                    //Retrieve the input box price value
+                    var inputPrice = document.getElementById("editItemPrice_" + this.key).value;
+
+                    //Validation
+                    switch (true) {
+                        case inputPrice <= 0:
+                            alertFunc("Invalid Price: " + inputPrice + " (<0)");
+                            break;
+                        case inputPrice >= 10000:
+                            alertFunc("Invalid Price: " + inputPrice + " (Number is larger than 10000)");
+                            break;
+                        case inputPrice >= 1 && inputPrice <= 9999: //Do the action
+                            set(ref(database, 'services/categories/' + this.category.key + '/items/' + this.key + '/price'),
+                                Number(document.getElementById("editItemPrice_" + this.key).value)
+                            );
+                            break;
+                        default:
+                            break;
+                    };
                 });
             }, 1);
         };
@@ -283,7 +335,11 @@
         confirmButton.innerHTML = "CONFIRM";
         confirmButton.type = "button";
         confirmButton.className = "confirmButton";
-        confirmButton.addEventListener('click', action);
+        confirmButton.addEventListener('click', () => {
+            action();
+            //Remove confirmation window
+            document.getElementById("confirmation").remove();
+        });
 
         const confirmation = document.createElement("div");
         confirmation.innerHTML = `

@@ -206,7 +206,14 @@
     //Get current date
     var currentdate = new Date();
     //assign default month and day
-    document.getElementById("date").value = currentdate.getFullYear() + "-" + (currentdate.getMonth() + 1) + "-" + currentdate.getDate();
+    document.getElementById("date").value = pad(currentdate.getFullYear(), 4) + "-" + pad(currentdate.getMonth() + 1, 2) + "-" + pad(currentdate.getDate(), 2)
+
+    //To set 0 before the limit
+    function pad(num, limit) {
+        num = num.toString();
+        while (num.length < limit) num = "0" + num;
+        return num;
+    };
 
 
     //Default list order sorting
@@ -301,7 +308,11 @@
         confirmButton.innerHTML = "CONFIRM";
         confirmButton.type = "button";
         confirmButton.className = "confirmButton";
-        confirmButton.addEventListener('click', action);
+        confirmButton.addEventListener('click', () => {
+            action();
+            //Remove confirmation window
+            document.getElementById("confirmation").remove();
+        });
 
         const confirmation = document.createElement("div");
         confirmation.innerHTML = `

@@ -84,6 +84,7 @@ switch (currentPage) {
         activePage = 'staff';
         break;
     default:
+        alert("Invalid Page!");
         break;
 };
 
@@ -106,11 +107,6 @@ function logout() {
         sessionStorage.removeItem("credential");
         window.location.href = "staffcode.html";
     }
-}
-
-// Detect phone size by comparing width and height
-if (window.innerWidth < window.innerHeight) {
-
 };
 
 /* Import statement

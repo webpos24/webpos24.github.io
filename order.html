@@ -292,7 +292,11 @@
         confirmButton.innerHTML = "CONFIRM";
         confirmButton.type = "button";
         confirmButton.className = "confirmButton";
-        confirmButton.addEventListener('click', action);
+        confirmButton.addEventListener('click', () => {
+            action();
+            //Remove confirmation window
+            document.getElementById("confirmation").remove();
+        });
 
         const confirmation = document.createElement("div");
         confirmation.innerHTML = `
@@ -361,6 +365,7 @@
     });
 
     var pass = true;
+    //Validate item quantity to prevent out of stock
     itemQuantityValidation();
 
     //Detect refresh and validate the updated order list

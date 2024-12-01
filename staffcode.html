@@ -104,21 +104,16 @@
 
     //Alert Function for error or false
     function alertFunc(text) {
-        var alertTimeout = 0;
+        //Display Alert
         document.getElementById('alert').innerHTML = text;
         document.getElementById('alert').style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
-        if (alertTimeout <= 0) {
-            var alertTimeoutInterval = setInterval(() => {
-                alertTimeout -= 1;
-                if (alertTimeout <= 0) {
-                    document.getElementById('alert').innerHTML = '';
-                    document.getElementById('alert').style.backgroundColor = 'rgba(0, 0, 0, 0)';
-                    clearInterval(alertTimeoutInterval);
-                    alertTimeout = 0;
-                }
-            }, 1)
-        };
-        alertTimeout = 600;
+
+        //Set delay for disappear
+        setTimeout(() => {
+            document.getElementById('alert').innerHTML = '';
+            document.getElementById('alert').style.backgroundColor = 'rgba(0, 0, 0, 0)';
+        }, 5000);
+
     };
 
 </script>
@@ -169,10 +164,28 @@
 
     //Button for login function
     loginStaff.addEventListener('click', async () => {
-        const staff = await CredentialFactory.createItem(document.getElementById("pin").value);
-        if (staff) {
-            staff.login();
+        var staffPIN = document.getElementById("pin").value;
+
+        //Validation
+        switch (true) {
+            case staffPIN.length == 0:
+                alertFunc("Invalid PIN. (No value)");
+                break;
+            case staffPIN.length > 0 && staffPIN.length < 4:
+                alertFunc("Invalid PIN: " + staffPIN + " (<4)");
+                break;
+            case staffPIN.length > 4: //Basically won't run
+                alertFunc("Invalid PIN: " + staffPIN + " (>4)");
+                break;
+            case staffPIN.length == 4:
+                const staff = await CredentialFactory.createItem(document.getElementById("pin").value);
+                if (staff) {
+                    staff.login();
+                };
+            default:
+                break;
         };
+
     });
 
 </script>

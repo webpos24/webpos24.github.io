@@ -271,26 +271,58 @@
             document.getElementById("addQ").addEventListener("click", () => {
                 //Retrieve quantity value for increment from the input box
                 var inputQ = parseInt(document.getElementById("inputQuantity").value);
-                document.getElementById("quantityError").innerHTML = "";
 
-                update(ref(database, 'services/categories/' + category.key + '/items/' + this.key), {
-                    quantity: parseInt(this.quantity) + inputQ
-                });
-                document.getElementById('editWindow').innerHTML = '';
+                //Validation
+                switch (true) {
+                    case inputQ < 0:
+                        document.getElementById("quantityError").innerHTML = "Invalid Quantity " + inputQ + " (<1)";
+                        break;
+                    case inputQ == 0:
+                        document.getElementById("quantityError").innerHTML = "Invalid Quantity " + inputQ + " (=0)";
+                        break;
+                    case inputQ >= 10000:
+                        document.getElementById("quantityError").innerHTML = "Invalid Quantity " + inputQ + " (>9999)";
+                        break;
+                    case inputQ > 0 && inputQ <= 9999: //Do the action
+                        document.getElementById("quantityError").innerHTML = "";
+
+                        update(ref(database, 'services/categories/' + category.key + '/items/' + this.key), {
+                            quantity: parseInt(this.quantity) + inputQ
+                        });
+                        document.getElementById('editWindow').innerHTML = '';
+                    default:
+                        break;
+                };
             });
 
             document.getElementById("removeQ").addEventListener("click", () => {
                 //Retrieve quantity value for decrement from the input box
                 var inputQ = parseInt(document.getElementById("inputQuantity").value);
-                document.getElementById("quantityError").innerHTML = "";
 
-                if (this.quantity - inputQ >= 0) {
-                    update(ref(database, 'services/categories/' + category.key + '/items/' + this.key), {
-                        quantity: parseInt(this.quantity) - inputQ
-                    });
-                    document.getElementById('editWindow').innerHTML = '';
-                } else {
-                    document.getElementById("quantityError").innerHTML = "Cannot remove the quantity. (" + this.quantity + " - " + inputQ + " = " + (this.quantity - inputQ) + ", <" + 0 + ")";
+                //Validation
+                switch (true) {
+                    case inputQ < 0:
+                        document.getElementById("quantityError").innerHTML = "Invalid Quantity " + inputQ + " (<1)";
+                        break;
+                    case inputQ == 0:
+                        document.getElementById("quantityError").innerHTML = "Invalid Quantity " + inputQ + " (=0)";
+                        break;
+                    case inputQ >= 10000:
+                        document.getElementById("quantityError").innerHTML = "Invalid Quantity " + inputQ + " (>9999)";
+                        break;
+                    case inputQ > 0 && inputQ <= 9999: //Do the action
+                        document.getElementById("quantityError").innerHTML = "";
+
+                        if (this.quantity - inputQ >= 0) {
+                            update(ref(database, 'services/categories/' + category.key + '/items/' + this.key), {
+                                quantity: parseInt(this.quantity) - inputQ
+                            });
+                            document.getElementById('editWindow').innerHTML = '';
+                        } else {
+                            document.getElementById("quantityError").innerHTML = "Cannot remove the quantity. (" + this.quantity + " - " + inputQ + " = " + (this.quantity - inputQ) + ", <" + 0 + ")";
+                        };
+                    default:
+                        break;
                 };
             });
 

@@ -102,14 +102,18 @@
 
     var reportType = "daily";
 
-    //Auto refresh staff status
+    //Get current date
     var currentdate = new Date();
-    var date = currentdate.getFullYear() + "/"
-        + (currentdate.getMonth() + 1) + "/"
-        + currentdate.getDate();
+    //assign default month and day
+    var date = pad(currentdate.getFullYear(), 4) + "-" + pad(currentdate.getMonth() + 1, 2) + "-" + pad(currentdate.getDate(), 2);
+    document.getElementById("date").value = date;
 
-    //assign default year, month and day
-    document.getElementById("date").value = date.replaceAll('/', '-');
+    //To set 0 before the limit
+    function pad(num, limit) {
+        num = num.toString();
+        while (num.length < limit) num = "0" + num;
+        return num;
+    };
 
 </script>
 
@@ -160,7 +164,7 @@
 
         document.getElementById("date").type = "date";
         //assign default year, month and day
-        document.getElementById("date").value = date.replaceAll('/', '-');
+        document.getElementById("date").value = date;
         getDailySales();
     });
 
@@ -173,7 +177,7 @@
 
         document.getElementById("date").type = "month";
         //assign default year, month and day
-        document.getElementById("date").value = date.replaceAll('/', '-').slice(0, 7);
+        document.getElementById("date").value = date.slice(0, 7);
         getMonthlySales();
     });
 
@@ -188,7 +192,7 @@
         document.getElementById("date").max = "9999";
         document.getElementById("date").min = "1000";
         //assign default year, month and day
-        document.getElementById("date").value = date.replaceAll('/', '-').slice(0, 4);
+        document.getElementById("date").value = date.slice(0, 4);
         getAnnualSales();
     });
 
@@ -196,6 +200,7 @@
 
         // Set Data
         const data = google.visualization.arrayToDataTable(salesData);
+        var date = document.getElementById("date").value.replaceAll('/', '-');
         var options;
 
         if (reportType == "daily") {
@@ -245,195 +250,132 @@
         //Declare variables for statistics
         var totalSales = 0;
         document.getElementById("statistics").innerHTML = "";
-
         //Retrieve input date sorting value
         var datePart = document.getElementById("date").value.split("-");
         var sDate = parseInt(datePart[0]) + "/" + parseInt(datePart[1]) + "/" + parseInt(datePart[2]);
-
         var resetList = false;
-
         salesData = [['Hour', 'Total Price'], [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [10, 0], [11, 0], [12, 0], [13, 0], [14, 0], [15, 0], [16, 0], [17, 0], [18, 0], [19, 0], [20, 0], [21, 0], [22, 0], [23, 0]];
-
         //Get list of order
         onValue(ref(database, 'sale/' + sDate), (snapshot) => {
-
             if (snapshot.exists()) {
-
                 if (resetList == false) {
                     //Reset list
                     resetList = true;
                 }
-
                 //Order list
                 snapshot.forEach((childSnapshot) => {
-
                     var time = parseInt(childSnapshot.val().time.slice(0, 2));
                     var totalPrice = childSnapshot.val().totalPrice;
-
                     if (childSnapshot.val().refund == false) {
                         salesData[time + 1][1] += totalPrice;
                         totalSales += totalPrice;
                     };
-
                 });
-
             } else {
                 console.log('Data is ended.');
             }
-
             // Update statistics
             document.getElementById("statistics").innerHTML += `<div>Total Daily Sales:<br>RM ${totalSales.toFixed(2)}</div>`;
             report();
-
         }, {
             onlyOnce: true
         });
-
     };
 
     function getMonthlySales() {
-
         //Declare variables for statistics
         var monthTotalSales = 0;
         document.getElementById("statistics").innerHTML = "";
-
         //Retrieve input date sorting value
         var datePart = document.getElementById("date").value.split("-");
         var sDate = parseInt(datePart[0]) + "/" + parseInt(datePart[1]);
-
         var resetList = false;
-
         salesData = [['Date', 'Total Price']];
-
         for (let index = 1; index <= (new Date(parseInt(datePart[0]), parseInt(datePart[1]), 0).getDate()); index++) {
             salesData.push([index, 0]);
         };
-
         onValue(ref(database, 'sale/' + sDate), (snapshot) => {
-
             snapshot.forEach(function (sDay) {
-
                 //Declare value for storing sales
                 var daySales = 0;
-
                 //Get every day's sales recorded in database
                 onValue(ref(database, 'sale/' + sDate + "/" + sDay.key), (snapshot) => {
-
                     if (snapshot.exists()) {
-
                         if (resetList == false) {
                             //Reset list
                             resetList = true;
                         }
-
                         //Order list
                         snapshot.forEach((childSnapshot) => {
-
                             var totalPrice = childSnapshot.val().totalPrice;
-
                             if (childSnapshot.val().refund == false) {
                                 daySales += totalPrice;
                             };
-
                         });
-
                     } else {
                         console.log('Data is ended.');
                     };
-
                 }, {
                     onlyOnce: true
                 });
-
                 salesData[sDay.key][1] = daySales;
                 monthTotalSales += daySales;
-
             });
-
             document.getElementById("statistics").innerHTML += `<div>Total Monthly Sales:<br>RM ${monthTotalSales.toFixed(2)}</div>`;
             report();
-
         });
-
     };
 
     function getAnnualSales() {
-
         //Declare variables for statistics
         var yearTotalSales = 0;
         document.getElementById("statistics").innerHTML = "";
-
         //Retrieve input year sorting value
         var sYear = document.getElementById("date").value;
-
         var resetList = false;
-
         salesData = [['Month', 'Total Price']];
-
         // 12 Months
         for (let index = 1; index <= 12; index++) {
             salesData.push([index, 0]);
         };
-
         onValue(ref(database, 'sale/' + sYear), (snapshot) => {
-
             snapshot.forEach(function (sMonth) {
                 //Declare value for storing sales
                 var monthSales = 0;
-
                 //Get every day's sales recorded in database
                 onValue(ref(database, 'sale/' + sYear + "/" + sMonth.key), (snapshot) => {
-
                     snapshot.forEach(function (sDay) {
-
                         //Declare value for storing sales
                         var daySales = 0;
-
                         //Get every day's sales recorded in database
                         onValue(ref(database, 'sale/' + sYear + "/" + sMonth.key + "/" + sDay.key), (snapshot) => {
-
                             if (snapshot.exists()) {
-
                                 if (resetList == false) {
                                     //Reset list
                                     resetList = true;
                                 }
-
                                 //Order list
                                 snapshot.forEach((childSnapshot) => {
-
                                     var totalPrice = childSnapshot.val().totalPrice;
-
                                     if (childSnapshot.val().refund == false) {
                                         daySales += totalPrice;
                                     };
-
                                 });
-
                             } else {
                                 console.log('Data is ended.');
                             };
-
                         }, {
                             onlyOnce: true
                         });
-
                         monthSales += daySales;
-
                     });
-
                 });
-
                 salesData[sMonth.key][1] = monthSales;
                 yearTotalSales += monthSales;
-
             });
-
             document.getElementById("statistics").innerHTML += `<div>Total Annual Sales:<br>RM ${yearTotalSales.toFixed(2)}</div>`;
             report();
-
         });
-
     };
 
 </script>
