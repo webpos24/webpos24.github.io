@@ -205,9 +205,25 @@
                 });
                 // Edit category name
                 document.getElementById("editCategoryName_" + this.key).addEventListener('focusout', (e) => {
-                    set(ref(database, 'services/categories/' + this.key + '/name'),
-                        document.getElementById("editCategoryName_" + this.key).value
-                    );
+                    //Retrieve the input box name value
+                    var inputName = document.getElementById("editItemName_" + this.key).value;
+
+                    //Validation
+                    switch (true) {
+                        case inputName.length == 0:
+                            alertFunc("Invalid Name: " + inputName + " (No input)");
+                            break;
+                        case inputName.length >= 256:
+                            alertFunc("Invalid Name: " + inputName + " (Length is larger than 255)");
+                            break;
+                        case inputName.length >= 1 && inputName.length <= 255: //Do the action
+                            set(ref(database, 'services/categories/' + this.key + '/name'),
+                                document.getElementById("editCategoryName_" + this.key).value
+                            );
+                            break;
+                        default:
+                            break;
+                    };
                 });
             }, 1);
         };
